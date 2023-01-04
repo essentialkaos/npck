@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '30 12 */15 * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Go:
+    name: Go
+    runs-on: ubuntu-latest
+
+    env:
+      SRC_DIR: src/github.com/${{ github.repository }}
+
+    strategy:
+      matrix:
+        go: [ '1.18.x', '1.19.x' ]
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ${{env.SRC_DIR}}
+
+      - name: Download dependencies
+        working-directory: ${{env.SRC_DIR}}
+        run: make deps
+
+      - name: Run tests
+        working-directory: ${{env.SRC_DIR}}
+        run: make test
