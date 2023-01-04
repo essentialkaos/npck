@@ -55,4 +55,7 @@ func (s *TBZSuite) TestErrors(c *C) {
 
 	err = Unpack("../.testdata/data.tbz2", "/unknown")
 	c.Assert(err, NotNil)
+
+	err = UnpackReader(nil, "/unknown")
+	c.Assert(err, NotNil)
 }

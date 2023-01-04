@@ -55,4 +55,7 @@ func (s *TZSTSuite) TestErrors(c *C) {
 
 	err = Unpack("../.testdata/data.tzst", "/unknown")
 	c.Assert(err, NotNil)
+
+	err = UnpackReader(nil, "/unknown")
+	c.Assert(err, NotNil)
 }

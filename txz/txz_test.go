@@ -55,4 +55,7 @@ func (s *TXZSuite) TestErrors(c *C) {
 
 	err = Unpack("../.testdata/data.txz", "/unknown")
 	c.Assert(err, NotNil)
+
+	err = UnpackReader(nil, "/unknown")
+	c.Assert(err, NotNil)
 }

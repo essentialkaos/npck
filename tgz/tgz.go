@@ -9,6 +9,7 @@ package tgz
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 
@@ -35,6 +36,10 @@ func Unpack(file, dir string) error {
 // UnpackReader reads packed data using given reader and unpacks it to
 // the given directory
 func UnpackReader(r io.Reader, dir string) error {
+	if r == nil {
+		return fmt.Errorf("Reader can not be nil")
+	}
+
 	gr, err := gzip.NewReader(r)
 
 	if err != nil {
