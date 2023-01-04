@@ -10,9 +10,11 @@ package tar
 import (
 	"archive/tar"
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -52,6 +54,10 @@ func UnpackReader(r io.Reader, dir string) error {
 
 		path := filepath.Join(dir, header.Name)
 		info := header.FileInfo()
+
+		if strings.Contains(path, "..") {
+			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
+		}
 
 		if info.IsDir() {
 			err = os.MkdirAll(path, info.Mode())
