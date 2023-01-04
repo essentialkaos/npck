@@ -6,7 +6,7 @@
   <a href="https://kaos.sh/w/npck/ci"><img src="https://kaos.sh/w/npck/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/npck/codeql"><img src="https://kaos.sh/w/npck/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="https://kaos.sh/c/npck"><img src="https://kaos.sh/c/npck.svg" alt="Coverage Status" /></a>
-  <a href="https://kaos.sh/b/npck"><img src="https://kaos.sh/b/xxxxxxxx.svg" alt="Codebeat badge" /></a>
+  <a href="https://kaos.sh/b/npck"><img src="https://kaos.sh/b/fc322f23-4913-4edd-8f0f-33a3ce029add.svg" alt="Codebeat badge" /></a>
   <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
 </p>
 
