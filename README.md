@@ -2,7 +2,6 @@
 
 <p align="center">
   <a href="https://kaos.sh/g/npck"><img src="https://gh.kaos.st/godoc.svg" alt="PkgGoDev" /></a>
-  <a href="https://kaos.sh/r/npck"><img src="https://kaos.sh/r/npck.svg" alt="GoReportCard" /></a>
   <a href="https://kaos.sh/w/npck/ci"><img src="https://kaos.sh/w/npck/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/npck/codeql"><img src="https://kaos.sh/w/npck/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="https://kaos.sh/c/npck"><img src="https://kaos.sh/c/npck.svg" alt="Coverage Status" /></a>
