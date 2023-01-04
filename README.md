@@ -56,8 +56,8 @@ func main() {
 
 | Branch | Status |
 |--------|--------|
-| `master` | [![CI](https://kaos.sh/w/go-zabbix-jmx/ci.svg?branch=master)](https://kaos.sh/w/go-zabbix-jmx/ci?query=branch:master) |
-| `develop` | [![CI](https://kaos.sh/w/go-zabbix-jmx/ci.svg?branch=develop)](https://kaos.sh/w/go-zabbix-jmx/ci?query=branch:develop) |
+| `master` | [![CI](https://kaos.sh/w/npck/ci.svg?branch=master)](https://kaos.sh/w/npck/ci?query=branch:master) |
+| `develop` | [![CI](https://kaos.sh/w/npck/ci.svg?branch=develop)](https://kaos.sh/w/npck/ci?query=branch:develop) |
 
 ### License
 
