@@ -1,4 +1,4 @@
-// Package tgz provides method for unpacking tar.gz files
+// Package tgz provides methods for unpacking tar.gz files
 package tgz
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -31,12 +31,12 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return UnpackReader(bufio.NewReader(fd), dir)
+	return Read(bufio.NewReader(fd), dir)
 }
 
-// UnpackReader reads packed data using given reader and unpacks it to
+// Read reads compressed data using given reader and unpacks it to
 // the given directory
-func UnpackReader(r io.Reader, dir string) error {
+func Read(r io.Reader, dir string) error {
 	if r == nil {
 		return fmt.Errorf("Reader can not be nil")
 	}
@@ -47,5 +47,5 @@ func UnpackReader(r io.Reader, dir string) error {
 		return err
 	}
 
-	return tar.UnpackReader(gr, dir)
+	return tar.Read(gr, dir)
 }

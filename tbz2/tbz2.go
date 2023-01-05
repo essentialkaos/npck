@@ -1,5 +1,5 @@
-// Package tbz provides method for unpacking tar.bz2 files
-package tbz
+// Package tbz2 provides method for unpacking tar.bz2 files
+package tbz2
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
@@ -30,15 +30,15 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return UnpackReader(bufio.NewReader(fd), dir)
+	return Read(bufio.NewReader(fd), dir)
 }
 
-// UnpackReader reads packed data using given reader and unpacks it to
+// Read reads compressed data using given reader and unpacks it to
 // the given directory
-func UnpackReader(r io.Reader, dir string) error {
+func Read(r io.Reader, dir string) error {
 	if r == nil {
 		return fmt.Errorf("Reader can not be nil")
 	}
 
-	return tar.UnpackReader(bzip2.NewReader(r), dir)
+	return tar.Read(bzip2.NewReader(r), dir)
 }

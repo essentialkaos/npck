@@ -1,4 +1,4 @@
-package tzst
+package tbz2
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
@@ -23,20 +23,20 @@ func Test(t *testing.T) { TestingT(t) }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-type TZSTSuite struct {
+type TBZ2Suite struct {
 	Dir string
 }
 
-var _ = Suite(&TZSTSuite{})
+var _ = Suite(&TBZ2Suite{})
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-func (s *TZSTSuite) SetUpSuite(c *C) {
+func (s *TBZ2Suite) SetUpSuite(c *C) {
 	s.Dir = c.MkDir()
 }
 
-func (s *TZSTSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.tzst", s.Dir)
+func (s *TBZ2Suite) TestUnpack(c *C) {
+	err := Unpack("../.testdata/data.tbz2", s.Dir)
 
 	c.Assert(err, IsNil)
 
@@ -49,11 +49,11 @@ func (s *TZSTSuite) TestUnpack(c *C) {
 	c.Assert(hash.FileHash(s.Dir+"/data/payload.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
 }
 
-func (s *TZSTSuite) TestErrors(c *C) {
-	err := Unpack("../.testdata/unknown.tzst", s.Dir)
+func (s *TBZ2Suite) TestErrors(c *C) {
+	err := Unpack("../.testdata/unknown.tbz2", s.Dir)
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.tzst", "/unknown")
+	err = Unpack("../.testdata/data.tbz2", "/unknown")
 	c.Assert(err, NotNil)
 
 	err = Read(nil, "/unknown")

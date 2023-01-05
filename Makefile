@@ -33,9 +33,9 @@ vendor: mod-vendor ## Make vendored copy of dependencies
 
 test: ## Run tests
 ifdef COVERAGE_FILE ## Save coverage data into file (String)
-		go test $(VERBOSE_FLAG) -covermode=count -coverprofile=$(COVERAGE_FILE) ./tar ./tbz ./tgz ./txz ./tzst
+		go test $(VERBOSE_FLAG) -covermode=count -coverprofile=$(COVERAGE_FILE) ./. ./bz2 ./gz ./tar ./tbz2 ./tgz ./txz ./tzst ./xz ./zst
 else
-		go test $(VERBOSE_FLAG) -covermode=count ./tar ./tbz ./tgz ./txz ./tzst
+		go test $(VERBOSE_FLAG) -covermode=count ./. ./bz2 ./gz ./tar ./tbz2 ./tgz ./txz ./tzst ./xz ./zst
 endif
 
 mod-init:
