@@ -67,8 +67,10 @@ func Read(r io.Reader, output string) error {
 		return err
 	}
 
-	_, err = io.Copy(fd, gr)
+	bw := bufio.NewWriter(fd)
+	_, err = io.Copy(bw, gr)
 
+	bw.Flush()
 	fd.Close()
 
 	return err

@@ -1,4 +1,4 @@
-// Package txz provides method for unpacking tar.xz files
+// Package txz provides methods for unpacking tar.xz files
 package txz
 
 // ////////////////////////////////////////////////////////////////////////////////// //

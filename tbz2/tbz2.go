@@ -1,4 +1,4 @@
-// Package tbz2 provides method for unpacking tar.bz2 files
+// Package tbz2 provides methods for unpacking tar.bz2 files
 package tbz2
 
 // ////////////////////////////////////////////////////////////////////////////////// //

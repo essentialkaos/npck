@@ -21,6 +21,7 @@ import (
 	"github.com/essentialkaos/npck/txz"
 	"github.com/essentialkaos/npck/tzst"
 	"github.com/essentialkaos/npck/xz"
+	"github.com/essentialkaos/npck/zip"
 	"github.com/essentialkaos/npck/zst"
 )
 
@@ -43,6 +44,8 @@ func Unpack(file, dir string) error {
 		return txz.Unpack(file, dir)
 	case ".tzst", ".tar.zst":
 		return tzst.Unpack(file, dir)
+	case ".zip":
+		return zip.Unpack(file, dir)
 	case ".tar":
 		return tar.Unpack(file, dir)
 	case ".gz":

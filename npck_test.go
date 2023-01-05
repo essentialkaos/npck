@@ -38,6 +38,7 @@ func (s *NPCKSuite) TestUnpack(c *C) {
 	c.Assert(Unpack(".testdata/data.tbz2", c.MkDir()), IsNil)
 	c.Assert(Unpack(".testdata/data.txz", c.MkDir()), IsNil)
 	c.Assert(Unpack(".testdata/data.tzst", c.MkDir()), IsNil)
+	c.Assert(Unpack(".testdata/data.zip", c.MkDir()), IsNil)
 	c.Assert(Unpack(".testdata/data.tar.gz", c.MkDir()), IsNil)
 
 	c.Assert(Unpack(".testdata/data.jpg", c.MkDir()), NotNil)

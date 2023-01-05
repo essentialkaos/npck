@@ -1,4 +1,4 @@
-// Package tzst provides method for unpacking tar.zst files
+// Package tzst provides methods for unpacking tar.zst files
 package tzst
 
 // ////////////////////////////////////////////////////////////////////////////////// //
