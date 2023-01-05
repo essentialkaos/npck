@@ -1,4 +1,4 @@
-package tzst
+package zip
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
@@ -9,6 +9,7 @@ package tzst
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/essentialkaos/ek/v12/fsutil"
@@ -23,20 +24,20 @@ func Test(t *testing.T) { TestingT(t) }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-type TZSTSuite struct {
+type ZipSuite struct {
 	Dir string
 }
 
-var _ = Suite(&TZSTSuite{})
+var _ = Suite(&ZipSuite{})
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-func (s *TZSTSuite) SetUpSuite(c *C) {
+func (s *ZipSuite) SetUpSuite(c *C) {
 	s.Dir = c.MkDir()
 }
 
-func (s *TZSTSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.tzst", s.Dir)
+func (s *ZipSuite) TestUnpack(c *C) {
+	err := Unpack("../.testdata/data.zip", s.Dir)
 
 	c.Assert(err, IsNil)
 
@@ -49,13 +50,22 @@ func (s *TZSTSuite) TestUnpack(c *C) {
 	c.Assert(hash.FileHash(s.Dir+"/data/payload.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
 }
 
-func (s *TZSTSuite) TestErrors(c *C) {
-	err := Unpack("../.testdata/unknown.tzst", s.Dir)
+func (s *ZipSuite) TestErrors(c *C) {
+	err := Unpack("../.testdata/unknown.zip", s.Dir)
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.tzst", "/unknown")
+	err = Unpack("../.testdata/data.zip", "/unknown")
 	c.Assert(err, NotNil)
 
 	err = Read(nil, "/unknown")
+	c.Assert(err, NotNil)
+
+	err = Read(nil, "/unknown")
+	c.Assert(err, NotNil)
+
+	err = Read(strings.NewReader(""), "")
+	c.Assert(err, NotNil)
+
+	err = Read(strings.NewReader(""), s.Dir)
 	c.Assert(err, NotNil)
 }

@@ -1,5 +1,5 @@
-// Package tar provides method for unpacking tar files
-package tar
+// Package zip provides methods for unpacking zip files
+package zip
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
@@ -9,13 +9,14 @@ package tar
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
-	"archive/tar"
 	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/klauspost/compress/zip"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -30,12 +31,12 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), dir)
+	return Read(fd, dir)
 }
 
 // Read reads compressed data using given reader and unpacks it to
 // the given directory
-func Read(r io.Reader, dir string) error {
+func Read(r io.ReaderAt, dir string) error {
 	switch {
 	case r == nil:
 		return fmt.Errorf("Reader can not be nil")
@@ -43,23 +44,14 @@ func Read(r io.Reader, dir string) error {
 		return fmt.Errorf("Path to output directory can not be empty")
 	}
 
-	_, err := os.Stat(dir)
+	zr, err := zip.NewReader(r, 4096)
 
 	if err != nil {
 		return err
 	}
 
-	tr := tar.NewReader(r)
-
-	for {
-		header, err := tr.Next()
-
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-
+	for _, file := range zr.File {
+		header := file.FileHeader
 		path := filepath.Join(dir, header.Name)
 		info := header.FileInfo()
 
@@ -77,6 +69,12 @@ func Read(r io.Reader, dir string) error {
 			continue
 		}
 
+		zfd, err := file.Open()
+
+		if err != nil {
+			return err
+		}
+
 		fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
 
 		if err != nil {
@@ -84,7 +82,7 @@ func Read(r io.Reader, dir string) error {
 		}
 
 		bw := bufio.NewWriter(fd)
-		_, err = io.Copy(bw, tr)
+		_, err = io.Copy(bw, zfd)
 
 		bw.Flush()
 		fd.Close()

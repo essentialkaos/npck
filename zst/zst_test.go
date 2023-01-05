@@ -1,4 +1,4 @@
-package tzst
+package zst
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
@@ -9,6 +9,7 @@ package tzst
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/essentialkaos/ek/v12/fsutil"
@@ -23,39 +24,45 @@ func Test(t *testing.T) { TestingT(t) }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-type TZSTSuite struct {
+type ZSTSuite struct {
 	Dir string
 }
 
-var _ = Suite(&TZSTSuite{})
+var _ = Suite(&ZSTSuite{})
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-func (s *TZSTSuite) SetUpSuite(c *C) {
+func (s *ZSTSuite) SetUpSuite(c *C) {
 	s.Dir = c.MkDir()
 }
 
-func (s *TZSTSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.tzst", s.Dir)
+func (s *ZSTSuite) TestUnpack(c *C) {
+	err := Unpack("../.testdata/data.txt.zst", s.Dir)
 
 	c.Assert(err, IsNil)
 
-	c.Assert(fsutil.IsExist(s.Dir+"/data"), Equals, true)
-	c.Assert(fsutil.GetMode(s.Dir+"/data"), Equals, os.FileMode(0700))
+	c.Assert(fsutil.IsExist(s.Dir+"/data.txt"), Equals, true)
+	c.Assert(fsutil.GetMode(s.Dir+"/data.txt"), Equals, os.FileMode(0640))
 
-	c.Assert(fsutil.IsExist(s.Dir+"/data/payload.txt"), Equals, true)
-	c.Assert(fsutil.GetMode(s.Dir+"/data/payload.txt"), Equals, os.FileMode(0644))
-
-	c.Assert(hash.FileHash(s.Dir+"/data/payload.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
+	c.Assert(hash.FileHash(s.Dir+"/data.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
 }
 
-func (s *TZSTSuite) TestErrors(c *C) {
-	err := Unpack("../.testdata/unknown.tzst", s.Dir)
+func (s *ZSTSuite) TestErrors(c *C) {
+	err := Unpack("", "/_unknown")
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.tzst", "/unknown")
+	err = Unpack("../.testdata/data.txt.zst", "")
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Unpack("/_unknown", s.Dir)
+	c.Assert(err, NotNil)
+
+	err = Read(nil, "/_unknown")
+	c.Assert(err, NotNil)
+
+	err = Read(strings.NewReader(""), "")
+	c.Assert(err, NotNil)
+
+	err = Read(strings.NewReader(""), "/_unknown")
 	c.Assert(err, NotNil)
 }

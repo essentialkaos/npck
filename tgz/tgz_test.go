@@ -56,6 +56,6 @@ func (s *TGZSuite) TestErrors(c *C) {
 	err = Unpack("../.testdata/data.tgz", "/unknown")
 	c.Assert(err, NotNil)
 
-	err = UnpackReader(nil, "/unknown")
+	err = Read(nil, "/unknown")
 	c.Assert(err, NotNil)
 }
