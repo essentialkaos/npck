@@ -70,10 +70,10 @@ func (s *TarSuite) TestErrors(c *C) {
 	err = createFile(&tar.Header{}, nil, "/_unknown")
 	c.Assert(err, NotNil)
 
-	err = createSymlink(&tar.Header{Linkname: "/__unknown"}, "/_unknown")
+	err = createSymlink(&tar.Header{Linkname: "/__unknown"}, "", "/_unknown")
 	c.Assert(err, NotNil)
 
-	err = createHardlink(&tar.Header{Linkname: "/__unknown"}, "/_unknown")
+	err = createHardlink(&tar.Header{Linkname: "/__unknown"}, "", "/_unknown")
 	c.Assert(err, NotNil)
 
 	UpdateTimes, UpdateOwner = true, false
@@ -85,4 +85,12 @@ func (s *TarSuite) TestErrors(c *C) {
 	c.Assert(err, NotNil)
 
 	UpdateTimes, UpdateOwner = true, false
+
+	err = createSymlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown")
+	c.Assert(err, NotNil)
+
+	err = createHardlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown")
+	c.Assert(err, NotNil)
+
+	c.Assert(isExternalLink("../unknown", "/root"), Equals, true)
 }

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
@@ -26,6 +27,10 @@ var UpdateOwner = false
 
 // UpdateOwner is flag for restoring mtime and atime
 var UpdateTimes = true
+
+// AllowExternalLinks is flag for protection against links to files and directories
+// outside target directory
+var AllowExternalLinks = false
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -85,9 +90,9 @@ func Read(r io.Reader, dir string) error {
 		case tar.TypeDir:
 			err = createDir(header, path)
 		case tar.TypeLink:
-			err = createHardlink(header, path)
+			err = createHardlink(header, dir, path)
 		case tar.TypeSymlink:
-			err = createSymlink(header, path)
+			err = createSymlink(header, dir, path)
 		default:
 			err = fmt.Errorf(
 				"Object %s has unsupported type (%d)",
@@ -134,12 +139,20 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 }
 
 // createSymlink creates symbolic link
-func createSymlink(h *tar.Header, path string) error {
+func createSymlink(h *tar.Header, dir, path string) error {
+	if !AllowExternalLinks && isExternalLink(h.Linkname, dir) {
+		return fmt.Errorf("Symbolic link %s points to target outside of target directory (%s)", h.Name, h.Linkname)
+	}
+
 	return os.Symlink(h.Linkname, path)
 }
 
 // createHardlink creates hard link
-func createHardlink(h *tar.Header, path string) error {
+func createHardlink(h *tar.Header, dir, path string) error {
+	if !AllowExternalLinks && isExternalLink(h.Linkname, dir) {
+		return fmt.Errorf("Hard link %s points to target outside of target directory (%s)", h.Name, h.Linkname)
+	}
+
 	return os.Link(h.Linkname, path)
 }
 
@@ -164,4 +177,19 @@ func updateAttrs(h *tar.Header, path string) error {
 	}
 
 	return nil
+}
+
+// isExternalLink checks if link leads to object outside target directory
+func isExternalLink(path, dir string) bool {
+	if filepath.IsAbs(path) && !strings.HasPrefix(path, dir) {
+		return true
+	}
+
+	realPath, err := securejoin.SecureJoin(dir, path)
+
+	if err != nil {
+		return true
+	}
+
+	return !strings.HasPrefix(realPath, dir)
 }
