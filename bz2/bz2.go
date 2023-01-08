@@ -16,6 +16,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	securejoin "github.com/cyphar/filepath-securejoin"
 )
 
 // Unpacks file to given directory
@@ -27,6 +29,14 @@ func Unpack(file, dir string) error {
 		return fmt.Errorf("Path to output file can not be empty")
 	}
 
+	path, err := securejoin.SecureJoin(
+		dir, strings.TrimSuffix(filepath.Base(file), ".bz2"),
+	)
+
+	if err != nil {
+		return err
+	}
+
 	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
 
 	if err != nil {
@@ -35,13 +45,7 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(
-		bufio.NewReader(fd),
-		filepath.Join(
-			filepath.Clean(dir),
-			strings.TrimSuffix(filepath.Base(file), ".bz2"),
-		),
-	)
+	return Read(bufio.NewReader(fd), path)
 }
 
 // Read reads compressed data using given reader and unpacks it to

@@ -57,6 +57,9 @@ func (s *BZ2Suite) TestErrors(c *C) {
 	err = Unpack("/_unknown", s.Dir)
 	c.Assert(err, NotNil)
 
+	err = Unpack("/_unknown", "/root")
+	c.Assert(err, NotNil)
+
 	err = Read(nil, "/_unknown")
 	c.Assert(err, NotNil)
 

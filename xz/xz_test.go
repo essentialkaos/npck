@@ -60,6 +60,9 @@ func (s *XZSuite) TestErrors(c *C) {
 	err = Read(nil, "/_unknown")
 	c.Assert(err, NotNil)
 
+	err = Unpack("/_unknown", "/root")
+	c.Assert(err, NotNil)
+
 	err = Read(strings.NewReader(""), "")
 	c.Assert(err, NotNil)
 
