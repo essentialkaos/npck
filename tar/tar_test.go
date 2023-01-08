@@ -8,7 +8,9 @@ package tar
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
+	"archive/tar"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/essentialkaos/ek/v12/fsutil"
@@ -58,4 +60,37 @@ func (s *TarSuite) TestErrors(c *C) {
 
 	err = Read(nil, "/unknown")
 	c.Assert(err, NotNil)
+
+	err = Read(strings.NewReader(""), "")
+	c.Assert(err, NotNil)
+
+	err = createDir(&tar.Header{}, "/_unknown")
+	c.Assert(err, NotNil)
+
+	err = createFile(&tar.Header{}, nil, "/_unknown")
+	c.Assert(err, NotNil)
+
+	err = createSymlink(&tar.Header{Linkname: "/__unknown"}, "", "/_unknown")
+	c.Assert(err, NotNil)
+
+	err = createHardlink(&tar.Header{Linkname: "/__unknown"}, "", "/_unknown")
+	c.Assert(err, NotNil)
+
+	UpdateTimes, UpdateOwner = true, false
+	err = updateAttrs(&tar.Header{Linkname: "/__unknown"}, "/_unknown")
+	c.Assert(err, NotNil)
+
+	UpdateTimes, UpdateOwner = false, true
+	err = updateAttrs(&tar.Header{Linkname: "/__unknown"}, "/_unknown")
+	c.Assert(err, NotNil)
+
+	UpdateTimes, UpdateOwner = true, false
+
+	err = createSymlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown")
+	c.Assert(err, NotNil)
+
+	err = createHardlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown")
+	c.Assert(err, NotNil)
+
+	c.Assert(isExternalLink("../unknown", "/root"), Equals, true)
 }

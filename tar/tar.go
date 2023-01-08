@@ -16,7 +16,21 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	securejoin "github.com/cyphar/filepath-securejoin"
 )
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// UpdateOwner is flag for restoring owner for files and directories
+var UpdateOwner = false
+
+// UpdateOwner is flag for restoring mtime and atime
+var UpdateTimes = true
+
+// AllowExternalLinks is flag for protection against links to files and directories
+// outside target directory
+var AllowExternalLinks = false
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -60,34 +74,31 @@ func Read(r io.Reader, dir string) error {
 			return err
 		}
 
-		path := filepath.Join(dir, header.Name)
-		info := header.FileInfo()
-
-		if strings.Contains(path, "..") {
+		if strings.Contains(header.Name, "..") {
 			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
 		}
 
-		if info.IsDir() {
-			err = os.MkdirAll(path, info.Mode())
-
-			if err != nil {
-				return err
-			}
-
-			continue
-		}
-
-		fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
+		path, err := securejoin.SecureJoin(dir, header.Name)
 
 		if err != nil {
 			return err
 		}
 
-		bw := bufio.NewWriter(fd)
-		_, err = io.Copy(bw, tr)
-
-		bw.Flush()
-		fd.Close()
+		switch header.Typeflag {
+		case tar.TypeReg:
+			err = createFile(header, tr, path)
+		case tar.TypeDir:
+			err = createDir(header, path)
+		case tar.TypeLink:
+			err = createHardlink(header, dir, path)
+		case tar.TypeSymlink:
+			err = createSymlink(header, dir, path)
+		default:
+			err = fmt.Errorf(
+				"Object %s has unsupported type (%d)",
+				header.Name, header.Typeflag,
+			)
+		}
 
 		if err != nil {
 			return err
@@ -95,4 +106,90 @@ func Read(r io.Reader, dir string) error {
 	}
 
 	return nil
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// createDir creates new directory
+func createDir(h *tar.Header, path string) error {
+	err := os.MkdirAll(path, h.FileInfo().Mode())
+
+	if err != nil {
+		return err
+	}
+
+	return updateAttrs(h, path)
+}
+
+// createFile creates new file
+func createFile(h *tar.Header, r io.Reader, path string) error {
+	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, h.FileInfo().Mode())
+
+	if err != nil {
+		return err
+	}
+
+	bw := bufio.NewWriter(fd)
+	_, err = io.Copy(bw, r)
+
+	bw.Flush()
+	fd.Close()
+
+	return updateAttrs(h, path)
+}
+
+// createSymlink creates symbolic link
+func createSymlink(h *tar.Header, dir, path string) error {
+	if !AllowExternalLinks && isExternalLink(h.Linkname, dir) {
+		return fmt.Errorf("Symbolic link %s points to target outside of target directory (%s)", h.Name, h.Linkname)
+	}
+
+	return os.Symlink(h.Linkname, path)
+}
+
+// createHardlink creates hard link
+func createHardlink(h *tar.Header, dir, path string) error {
+	if !AllowExternalLinks && isExternalLink(h.Linkname, dir) {
+		return fmt.Errorf("Hard link %s points to target outside of target directory (%s)", h.Name, h.Linkname)
+	}
+
+	return os.Link(h.Linkname, path)
+}
+
+// updateAttrs updates target attributes
+func updateAttrs(h *tar.Header, path string) error {
+	var err error
+
+	if UpdateTimes {
+		err = os.Chtimes(path, h.AccessTime, h.ModTime)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if UpdateOwner {
+		err = os.Chown(path, h.Uid, h.Gid)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// isExternalLink checks if link leads to object outside target directory
+func isExternalLink(path, dir string) bool {
+	if filepath.IsAbs(path) && !strings.HasPrefix(path, dir) {
+		return true
+	}
+
+	realPath, err := securejoin.SecureJoin(dir, path)
+
+	if err != nil {
+		return true
+	}
+
+	return !strings.HasPrefix(realPath, dir)
 }

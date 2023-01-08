@@ -1,4 +1,6 @@
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
+github.com/cyphar/filepath-securejoin v0.2.3 h1:YX6ebbZCZP7VkM3scTTokDgBL2TY741X51MTk3ycuNI=
+github.com/cyphar/filepath-securejoin v0.2.3/go.mod h1:aPGpWjXOXUn2NCNjFvBE6aRxGGx79pTxQpKOJNYHHl4=
 github.com/essentialkaos/check v1.3.0 h1:ria+8o22RCLdt2D/1SHQsEH5Mmy5S+iWHaGHrrbPUc0=
 github.com/essentialkaos/check v1.3.0/go.mod h1:PhxzfJWlf5L/skuyhzBLIvjMB5Xu9TIyDIsqpY5MvB8=
 github.com/essentialkaos/ek/v12 v12.57.0 h1:FUl5ZUF7czjZXROYVoJamGTWqEIGuZEHrm1DLfzq43I=

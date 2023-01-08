@@ -13,10 +13,11 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/klauspost/compress/zip"
+
+	securejoin "github.com/cyphar/filepath-securejoin"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -52,11 +53,16 @@ func Read(r io.ReaderAt, dir string) error {
 
 	for _, file := range zr.File {
 		header := file.FileHeader
-		path := filepath.Join(dir, header.Name)
-		info := header.FileInfo()
 
-		if strings.Contains(path, "..") {
+		if strings.Contains(header.Name, "..") {
 			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
+		}
+
+		info := header.FileInfo()
+		path, err := securejoin.SecureJoin(dir, header.Name)
+
+		if err != nil {
+			return err
 		}
 
 		if info.IsDir() {
