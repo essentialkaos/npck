@@ -14,8 +14,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
+
+	securejoin "github.com/cyphar/filepath-securejoin"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -68,10 +69,14 @@ func Read(r io.Reader, dir string) error {
 			return err
 		}
 
-		path := filepath.Join(dir, header.Name)
-
-		if strings.Contains(path, "..") {
+		if strings.Contains(header.Name, "..") {
 			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
+		}
+
+		path, err := securejoin.SecureJoin(dir, header.Name)
+
+		if err != nil {
+			return err
 		}
 
 		switch header.Typeflag {
