@@ -20,6 +20,14 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// UpdateOwner is flag for restoring owner for files and directories
+var UpdateOwner = false
+
+// UpdateOwner is flag for restoring mtime and atime
+var UpdateTimes = true
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Unpacks file to given directory
 func Unpack(file, dir string) error {
 	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
@@ -61,33 +69,89 @@ func Read(r io.Reader, dir string) error {
 		}
 
 		path := filepath.Join(dir, header.Name)
-		info := header.FileInfo()
 
 		if strings.Contains(path, "..") {
 			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
 		}
 
-		if info.IsDir() {
-			err = os.MkdirAll(path, info.Mode())
-
-			if err != nil {
-				return err
-			}
-
-			continue
+		switch header.Typeflag {
+		case tar.TypeReg:
+			err = createFile(header, tr, path)
+		case tar.TypeDir:
+			err = createDir(header, path)
+		case tar.TypeLink:
+			err = createHardlink(header, path)
+		case tar.TypeSymlink:
+			err = createSymlink(header, path)
+		default:
+			err = fmt.Errorf(
+				"Object %s has unsupported type (%d)",
+				header.Name, header.Typeflag,
+			)
 		}
-
-		fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
 
 		if err != nil {
 			return err
 		}
+	}
 
-		bw := bufio.NewWriter(fd)
-		_, err = io.Copy(bw, tr)
+	return nil
+}
 
-		bw.Flush()
-		fd.Close()
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// createDir creates new directory
+func createDir(h *tar.Header, path string) error {
+	err := os.MkdirAll(path, h.FileInfo().Mode())
+
+	if err != nil {
+		return err
+	}
+
+	return updateAttrs(h, path)
+}
+
+// createFile creates new file
+func createFile(h *tar.Header, r io.Reader, path string) error {
+	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, h.FileInfo().Mode())
+
+	if err != nil {
+		return err
+	}
+
+	bw := bufio.NewWriter(fd)
+	_, err = io.Copy(bw, r)
+
+	bw.Flush()
+	fd.Close()
+
+	return updateAttrs(h, path)
+}
+
+// createSymlink creates symbolic link
+func createSymlink(h *tar.Header, path string) error {
+	return os.Symlink(h.Linkname, path)
+}
+
+// createHardlink creates hard link
+func createHardlink(h *tar.Header, path string) error {
+	return os.Link(h.Linkname, path)
+}
+
+// updateAttrs updates target attributes
+func updateAttrs(h *tar.Header, path string) error {
+	var err error
+
+	if UpdateTimes {
+		err = os.Chtimes(path, h.AccessTime, h.ModTime)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if UpdateOwner {
+		err = os.Chown(path, h.Uid, h.Gid)
 
 		if err != nil {
 			return err
