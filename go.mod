@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/cyphar/filepath-securejoin v0.2.3
 	github.com/essentialkaos/check v1.3.0
-	github.com/essentialkaos/ek/v12 v12.58.0
+	github.com/essentialkaos/ek/v12 v12.60.0
 	github.com/klauspost/compress v1.15.15
 	github.com/ulikunitz/xz v0.5.11
 )
