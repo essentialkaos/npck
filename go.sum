@@ -5,8 +5,8 @@ github.com/essentialkaos/check v1.3.0 h1:ria+8o22RCLdt2D/1SHQsEH5Mmy5S+iWHaGHrrb
 github.com/essentialkaos/check v1.3.0/go.mod h1:PhxzfJWlf5L/skuyhzBLIvjMB5Xu9TIyDIsqpY5MvB8=
 github.com/essentialkaos/ek/v12 v12.57.0 h1:FUl5ZUF7czjZXROYVoJamGTWqEIGuZEHrm1DLfzq43I=
 github.com/essentialkaos/ek/v12 v12.57.0/go.mod h1:G8ghiSKh8ToJQCdB2bAhE3CnI6dn9nTJdWH3bQIVr1U=
-github.com/klauspost/compress v1.15.14 h1:i7WCKDToww0wA+9qrUZ1xOjp218vfFo3nTU6UHp+gOc=
-github.com/klauspost/compress v1.15.14/go.mod h1:QPwzmACJjUTFsnSHH934V6woptycfrDDJnH7hvFVbGM=
+github.com/klauspost/compress v1.16.0 h1:iULayQNOReoYUe+1qtKOqw9CwJv3aNQu8ivo7lw1HU4=
+github.com/klauspost/compress v1.16.0/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
