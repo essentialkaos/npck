@@ -6,7 +6,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.2.3
 	github.com/essentialkaos/check v1.4.0
 	github.com/essentialkaos/ek/v12 v12.62.0
-	github.com/klauspost/compress v1.16.0
+	github.com/klauspost/compress v1.16.3
 	github.com/ulikunitz/xz v0.5.11
 )
 
