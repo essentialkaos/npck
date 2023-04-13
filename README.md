@@ -19,14 +19,8 @@
 
 Make sure you have a working Go 1.18+ workspace (_[instructions](https://golang.org/doc/install)_), then:
 
-```
-go get -d github.com/essentialkaos/npck
-```
-
-For update to the latest stable release, do:
-
-```
-go get -d -u github.com/essentialkaos/npck
+```bash
+go get -u github.com/essentialkaos/npck
 ```
 
 ### Usage example
