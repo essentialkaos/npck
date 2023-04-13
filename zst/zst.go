@@ -1,4 +1,4 @@
-// Package zst provides methods for unpacking zst files
+// Package zst provides methods for unpacking files with Zstandart compression
 package zst
 
 // ////////////////////////////////////////////////////////////////////////////////// //
