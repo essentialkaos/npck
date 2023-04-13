@@ -9,15 +9,25 @@
   <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
 </p>
 
-<p align="center"><a href="#installation">Installation</a> • <a href="#usage-example">Usage example</a> • <a href="#build-status">CI Status</a> • <a href="#license">License</a></p>
+<p align="center"><a href="#supported-formats">Supported formats</a> • <a href="#installation">Installation</a> • <a href="#usage-example">Usage example</a> • <a href="#ci-status">CI Status</a> • <a href="#license">License</a></p>
 
 <br/>
 
 `npck` is a Go package for unpacking various types of archives.
 
+### Supported formats
+
+* [tar](https://en.wikipedia.org/wiki/Tar_(computing)) (`.tar`)
+* [Gzip](https://www.gnu.org/software/gzip/) (`.gz`, `.tgz`, `.tar.gz`)
+* [bzip2](http://sourceware.org/bzip2/) (`.bz2`, `.tbz2`, `.tar.bz2`)
+* [xz](https://tukaani.org/xz/) (`.xz`, `.txz`, `.tar.xz`)
+* [Zstandart](https://facebook.github.io/zstd/) (`.zst`, `.tzst`, `.tar.zst`)
+* [LZ4](https://lz4.github.io/lz4/) (`.lz4`, `.tlz4`, `.tar.lz4`)
+* [ZIP](https://en.wikipedia.org/wiki/ZIP_(file_format)) (`.zip`)
+
 ### Installation
 
-Make sure you have a working Go 1.18+ workspace (_[instructions](https://golang.org/doc/install)_), then:
+Make sure you have a working Go 1.18+ workspace (_[instructions](https://go.dev/doc/install)_), then:
 
 ```bash
 go get -u github.com/essentialkaos/npck
