@@ -34,6 +34,13 @@ var AllowExternalLinks = false
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+var (
+	ErrNilReader   = fmt.Errorf("Reader can not be nil")
+	ErrEmptyOutput = fmt.Errorf("Path to output directory can not be empty")
+)
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Unpacks file to given directory
 func Unpack(file, dir string) error {
 	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
@@ -52,9 +59,9 @@ func Unpack(file, dir string) error {
 func Read(r io.Reader, dir string) error {
 	switch {
 	case r == nil:
-		return fmt.Errorf("Reader can not be nil")
+		return ErrNilReader
 	case dir == "":
-		return fmt.Errorf("Path to output directory can not be empty")
+		return ErrEmptyOutput
 	}
 
 	_, err := os.Stat(dir)

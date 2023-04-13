@@ -20,6 +20,10 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+var ErrNilReader = fmt.Errorf("Reader can not be nil")
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Unpacks file to given directory
 func Unpack(file, dir string) error {
 	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
@@ -37,7 +41,7 @@ func Unpack(file, dir string) error {
 // the given directory
 func Read(r io.Reader, dir string) error {
 	if r == nil {
-		return fmt.Errorf("Reader can not be nil")
+		return ErrNilReader
 	}
 
 	return tar.Read(bzip2.NewReader(r), dir)

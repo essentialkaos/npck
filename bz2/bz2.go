@@ -1,4 +1,4 @@
-// Package bz2 provides methods for unpacking bz2 files
+// Package bz2 provides methods for unpacking files with BZip2 compression
 package bz2
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -20,18 +20,29 @@ import (
 	securejoin "github.com/cyphar/filepath-securejoin"
 )
 
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+var (
+	ErrNilReader   = fmt.Errorf("Reader can not be nil")
+	ErrEmptyInput  = fmt.Errorf("Path to input file can not be empty")
+	ErrEmptyOutput = fmt.Errorf("Path to output file can not be empty")
+)
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Unpacks file to given directory
 func Unpack(file, dir string) error {
 	switch {
 	case file == "":
-		return fmt.Errorf("Path to input file can not be empty")
+		return ErrEmptyInput
 	case dir == "":
-		return fmt.Errorf("Path to output file can not be empty")
+		return ErrEmptyOutput
 	}
 
-	path, err := securejoin.SecureJoin(
-		dir, strings.TrimSuffix(filepath.Base(file), ".bz2"),
-	)
+	output := strings.TrimSuffix(filepath.Base(file), ".bz2")
+	output = strings.TrimSuffix(output, ".BZ2")
+
+	path, err := securejoin.SecureJoin(dir, output)
 
 	if err != nil {
 		return err
@@ -53,9 +64,9 @@ func Unpack(file, dir string) error {
 func Read(r io.Reader, output string) error {
 	switch {
 	case r == nil:
-		return fmt.Errorf("Reader can not be nil")
+		return ErrNilReader
 	case output == "":
-		return fmt.Errorf("Path to output file can not be empty")
+		return ErrEmptyOutput
 	}
 
 	fd, err := os.OpenFile(output, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0640)
