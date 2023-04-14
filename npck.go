@@ -15,9 +15,11 @@ import (
 
 	"github.com/essentialkaos/npck/bz2"
 	"github.com/essentialkaos/npck/gz"
+	"github.com/essentialkaos/npck/lz4"
 	"github.com/essentialkaos/npck/tar"
 	"github.com/essentialkaos/npck/tbz2"
 	"github.com/essentialkaos/npck/tgz"
+	"github.com/essentialkaos/npck/tlz4"
 	"github.com/essentialkaos/npck/txz"
 	"github.com/essentialkaos/npck/tzst"
 	"github.com/essentialkaos/npck/xz"
@@ -27,11 +29,17 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+var ErrUnsupportedFormat = fmt.Errorf("Unknown or unsupported archive type")
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Unpack unpacks given file
 func Unpack(file, dir string) error {
 	ext := filepath.Ext(file)
+	ext = strings.ToLower(ext)
 
-	if strings.Contains(file, ".tar.") {
+	if strings.HasSuffix(file, ".tar"+ext) ||
+		strings.HasSuffix(file, ".TAR"+ext) {
 		ext = ".tar" + ext
 	}
 
@@ -44,6 +52,8 @@ func Unpack(file, dir string) error {
 		return txz.Unpack(file, dir)
 	case ".tzst", ".tar.zst":
 		return tzst.Unpack(file, dir)
+	case ".tlz4", ".tar.lz4":
+		return tlz4.Unpack(file, dir)
 	case ".zip":
 		return zip.Unpack(file, dir)
 	case ".tar":
@@ -56,7 +66,9 @@ func Unpack(file, dir string) error {
 		return xz.Unpack(file, dir)
 	case ".zst":
 		return zst.Unpack(file, dir)
+	case ".lz4":
+		return lz4.Unpack(file, dir)
 	}
 
-	return fmt.Errorf("Unknown or unsupported archive type")
+	return ErrUnsupportedFormat
 }

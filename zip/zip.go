@@ -1,4 +1,4 @@
-// Package zip provides methods for unpacking zip files
+// Package zip provides methods for unpacking files with ZIP compression
 package zip
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -22,6 +22,13 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+var (
+	ErrNilReader   = fmt.Errorf("Reader can not be nil")
+	ErrEmptyOutput = fmt.Errorf("Path to output directory can not be empty")
+)
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // Unpacks file to given directory
 func Unpack(file, dir string) error {
 	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
@@ -40,9 +47,9 @@ func Unpack(file, dir string) error {
 func Read(r io.ReaderAt, dir string) error {
 	switch {
 	case r == nil:
-		return fmt.Errorf("Reader can not be nil")
+		return ErrNilReader
 	case dir == "":
-		return fmt.Errorf("Path to output directory can not be empty")
+		return ErrEmptyOutput
 	}
 
 	zr, err := zip.NewReader(r, 4096)

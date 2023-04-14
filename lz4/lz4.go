@@ -1,5 +1,5 @@
-// Package xz provides methods for unpacking files with XZ compression
-package xz
+// Package lz4 provides methods for unpacking files with LZ4 compression
+package lz4
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ulikunitz/xz"
+	"github.com/pierrec/lz4/v4"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
 )
@@ -40,8 +40,8 @@ func Unpack(file, dir string) error {
 		return ErrEmptyOutput
 	}
 
-	output := strings.TrimSuffix(filepath.Base(file), ".xz")
-	output = strings.TrimSuffix(output, ".XZ")
+	output := strings.TrimSuffix(filepath.Base(file), ".lz4")
+	output = strings.TrimSuffix(output, ".LZ4")
 
 	path, err := securejoin.SecureJoin(dir, output)
 
@@ -76,7 +76,7 @@ func Read(r io.Reader, output string) error {
 		return err
 	}
 
-	cr, err := xz.NewReader(r)
+	cr := lz4.NewReader(r)
 
 	if err != nil {
 		return err
