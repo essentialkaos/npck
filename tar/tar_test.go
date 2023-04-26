@@ -25,34 +25,46 @@ func Test(t *testing.T) { TestingT(t) }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-type TarSuite struct {
-	Dir string
-}
+type TarSuite struct{}
 
 var _ = Suite(&TarSuite{})
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-func (s *TarSuite) SetUpSuite(c *C) {
-	s.Dir = c.MkDir()
-}
-
 func (s *TarSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.tar", s.Dir)
+	dir := c.MkDir()
+	err := Unpack("../.testdata/data.tar", dir)
 
 	c.Assert(err, IsNil)
 
-	c.Assert(fsutil.IsExist(s.Dir+"/data"), Equals, true)
-	c.Assert(fsutil.GetMode(s.Dir+"/data"), Equals, os.FileMode(0700))
+	c.Assert(fsutil.IsExist(dir+"/data"), Equals, true)
+	c.Assert(fsutil.GetMode(dir+"/data"), Equals, os.FileMode(0700))
 
-	c.Assert(fsutil.IsExist(s.Dir+"/data/payload.txt"), Equals, true)
-	c.Assert(fsutil.GetMode(s.Dir+"/data/payload.txt"), Equals, os.FileMode(0644))
+	c.Assert(fsutil.IsExist(dir+"/data/payload.txt"), Equals, true)
+	c.Assert(fsutil.GetMode(dir+"/data/payload.txt"), Equals, os.FileMode(0644))
 
-	c.Assert(hash.FileHash(s.Dir+"/data/payload.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
+	c.Assert(hash.FileHash(dir+"/data/payload.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
+}
+
+func (s *TarSuite) TestCPIOUnpack(c *C) {
+	dir := c.MkDir()
+	err := Unpack("../.testdata/data-cpio.tar", dir)
+
+	c.Assert(err, IsNil)
+
+	c.Assert(fsutil.IsExist(dir+"/data"), Equals, true)
+	c.Assert(fsutil.GetMode(dir+"/data"), Equals, os.FileMode(0755))
+
+	c.Assert(fsutil.IsExist(dir+"/data/payload.txt"), Equals, true)
+	c.Assert(fsutil.GetMode(dir+"/data/payload.txt"), Equals, os.FileMode(0644))
+
+	c.Assert(hash.FileHash(dir+"/data/payload.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
 }
 
 func (s *TarSuite) TestErrors(c *C) {
-	err := Unpack("../.testdata/unknown.tar", s.Dir)
+	dir := c.MkDir()
+
+	err := Unpack("../.testdata/unknown.tar", dir)
 	c.Assert(err, NotNil)
 
 	err = Unpack("../.testdata/data.tar", "/unknown")

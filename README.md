@@ -40,12 +40,11 @@ package main
 
 import (
   "fmt"
-
-  "github.com/essentialkaos/npck/tgz"
+  "github.com/essentialkaos/npck"
 )
 
 func main() {
-  err := tgz.Unpack("file.tar.gz", "/home/john")
+  err := npck.Unpack("file.tar.gz", "/home/john")
 
   if err != nil {
     panic("Can't unpack file: %v", err)
