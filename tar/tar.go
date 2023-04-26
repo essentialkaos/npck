@@ -130,6 +130,17 @@ func createDir(h *tar.Header, path string) error {
 
 // createFile creates new file
 func createFile(h *tar.Header, r io.Reader, path string) error {
+	dir := filepath.Dir(path)
+	_, err := os.Stat(dir)
+
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(dir, 0755)
+
+		if err != nil {
+			return err
+		}
+	}
+
 	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, h.FileInfo().Mode())
 
 	if err != nil {
