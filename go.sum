@@ -3,8 +3,8 @@ github.com/cyphar/filepath-securejoin v0.2.3 h1:YX6ebbZCZP7VkM3scTTokDgBL2TY741X
 github.com/cyphar/filepath-securejoin v0.2.3/go.mod h1:aPGpWjXOXUn2NCNjFvBE6aRxGGx79pTxQpKOJNYHHl4=
 github.com/essentialkaos/check v1.4.0 h1:kWdFxu9odCxUqo1NNFNJmguGrDHgwi3A8daXX1nkuKk=
 github.com/essentialkaos/check v1.4.0/go.mod h1:LMKPZ2H+9PXe7Y2gEoKyVAwUqXVgx7KtgibfsHJPus0=
-github.com/essentialkaos/ek/v12 v12.65.0 h1:OYs8HrVxzzG8CYW9s2wc6Ihfg+ZAnMGB94xzVEC+NMU=
-github.com/essentialkaos/ek/v12 v12.65.0/go.mod h1:PFJckNu+x4mHqsjndUeYRDPgDgvZEgcjpy1RpCYtx4g=
+github.com/essentialkaos/ek/v12 v12.66.0 h1:g/eg9IPKFDYHt0v5qB3b9pBeSSZ+N7gJdxdOLXIPFLA=
+github.com/essentialkaos/ek/v12 v12.66.0/go.mod h1:PFJckNu+x4mHqsjndUeYRDPgDgvZEgcjpy1RpCYtx4g=
 github.com/klauspost/compress v1.16.5 h1:IFV2oUNUzZaz+XyusxpLzpzS8Pt5rh0Z16For/djlyI=
 github.com/klauspost/compress v1.16.5/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
