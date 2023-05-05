@@ -17,7 +17,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	securejoin "github.com/cyphar/filepath-securejoin"
+	"github.com/essentialkaos/npck/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -85,7 +85,7 @@ func Read(r io.Reader, dir string) error {
 			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
 		}
 
-		path, err := securejoin.SecureJoin(dir, header.Name)
+		path, err := utils.Join(dir, header.Name)
 
 		if err != nil {
 			return err
@@ -203,7 +203,7 @@ func isExternalLink(path, dir string) bool {
 		return true
 	}
 
-	realPath, err := securejoin.SecureJoin(dir, path)
+	realPath, err := utils.Join(dir, path)
 
 	if err != nil {
 		return true

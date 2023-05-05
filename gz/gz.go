@@ -18,7 +18,7 @@ import (
 
 	"github.com/klauspost/compress/gzip"
 
-	securejoin "github.com/cyphar/filepath-securejoin"
+	"github.com/essentialkaos/npck/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -43,7 +43,7 @@ func Unpack(file, dir string) error {
 	output := strings.TrimSuffix(filepath.Base(file), ".gz")
 	output = strings.TrimSuffix(output, ".GZ")
 
-	path, err := securejoin.SecureJoin(dir, output)
+	path, err := utils.Join(dir, output)
 
 	if err != nil {
 		return err

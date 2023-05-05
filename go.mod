@@ -3,7 +3,6 @@ module github.com/essentialkaos/npck
 go 1.19
 
 require (
-	github.com/cyphar/filepath-securejoin v0.2.3
 	github.com/essentialkaos/check v1.4.0
 	github.com/essentialkaos/ek/v12 v12.64.1
 	github.com/klauspost/compress v1.16.5
