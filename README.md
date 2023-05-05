@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://kaos.sh/r/npck"><img src="https://gh.kaos.st/godoc.svg" alt="PkgGoDev" /></a>
   <a href="https://kaos.sh/r/npck"><img src="https://kaos.sh/r/npck.svg" alt="GoReportCard" /></a>
-  <a href="https://kaos.sh/l/branca"><img src="https://kaos.sh/l/974757272a5d2b6bd52b.svg" alt="Code Climate Maintainability" /></a>
+  <a href="https://kaos.sh/l/npck"><img src="https://kaos.sh/l/058a7dfd25582ff1093c.svg" alt="Code Climate Maintainability" /></a>
   <a href="https://kaos.sh/b/npck"><img src="https://kaos.sh/b/fc322f23-4913-4edd-8f0f-33a3ce029add.svg" alt="Codebeat badge" /></a>
   <br/>
   <a href="https://kaos.sh/c/npck"><img src="https://kaos.sh/c/npck.svg" alt="Coverage Status" /></a>
