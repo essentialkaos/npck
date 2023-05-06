@@ -17,7 +17,7 @@ import (
 
 	"github.com/klauspost/compress/zip"
 
-	securejoin "github.com/cyphar/filepath-securejoin"
+	"github.com/essentialkaos/npck/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -66,7 +66,7 @@ func Read(r io.ReaderAt, dir string) error {
 		}
 
 		info := header.FileInfo()
-		path, err := securejoin.SecureJoin(dir, header.Name)
+		path, err := utils.Join(dir, header.Name)
 
 		if err != nil {
 			return err
