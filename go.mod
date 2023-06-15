@@ -6,7 +6,7 @@ require (
 	github.com/essentialkaos/check v1.4.0
 	github.com/essentialkaos/ek/v12 v12.67.1
 	github.com/klauspost/compress v1.16.6
-	github.com/pierrec/lz4/v4 v4.1.17
+	github.com/pierrec/lz4/v4 v4.1.18
 	github.com/ulikunitz/xz v0.5.11
 )
 
