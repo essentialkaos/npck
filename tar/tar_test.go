@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/essentialkaos/ek/v12/fsutil"
 	"github.com/essentialkaos/ek/v12/hash"
@@ -89,11 +90,19 @@ func (s *TarSuite) TestErrors(c *C) {
 	c.Assert(err, NotNil)
 
 	UpdateTimes, UpdateOwner = true, false
-	err = updateAttrs(&tar.Header{Linkname: "/__unknown"}, "/_unknown")
+	err = updateAttrs(&tar.Header{
+		Linkname:   "/__unknown",
+		AccessTime: time.Now(),
+		ModTime:    time.Now(),
+	}, "/_unknown")
 	c.Assert(err, NotNil)
 
 	UpdateTimes, UpdateOwner = false, true
-	err = updateAttrs(&tar.Header{Linkname: "/__unknown"}, "/_unknown")
+	err = updateAttrs(&tar.Header{
+		Linkname:   "/__unknown",
+		AccessTime: time.Now(),
+		ModTime:    time.Now(),
+	}, "/_unknown")
 	c.Assert(err, NotNil)
 
 	UpdateTimes, UpdateOwner = true, false
