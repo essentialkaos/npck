@@ -104,5 +104,5 @@ func (s *TarSuite) TestErrors(c *C) {
 	err = createHardlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown")
 	c.Assert(err, NotNil)
 
-	c.Assert(isExternalLink("../unknown", "/root"), Equals, true)
+	c.Assert(isExternalLink("../../unknown", "/root/test", "/root"), Equals, true)
 }
