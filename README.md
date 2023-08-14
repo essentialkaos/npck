@@ -47,13 +47,15 @@ import (
 )
 
 func main() {
-  err := npck.Unpack("file.tar.gz", "/home/john")
+  file := "file.tar.gz"
+  err := npck.Unpack(file, "/home/john")
 
   if err != nil {
-    panic("Can't unpack file: %v", err)
+    fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
+    return
   }
 
-  fmt.Printf("File %s successfully unpacked!\n")
+  fmt.Printf("File %s successfully unpacked!\n", file)
 }
 ```
 

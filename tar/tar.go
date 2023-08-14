@@ -158,8 +158,8 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 
 // createSymlink creates symbolic link
 func createSymlink(h *tar.Header, dir, path string) error {
-	if !AllowExternalLinks && isExternalLink(h.Linkname, dir) {
-		return fmt.Errorf("Symbolic link %s points to target outside of target directory (%s)", h.Name, h.Linkname)
+	if !AllowExternalLinks && isExternalLink(h.Linkname, path, dir) {
+		return fmt.Errorf("Symbolic link %s points to object outside of target directory (%s)", h.Name, h.Linkname)
 	}
 
 	return os.Symlink(h.Linkname, path)
@@ -167,8 +167,8 @@ func createSymlink(h *tar.Header, dir, path string) error {
 
 // createHardlink creates hard link
 func createHardlink(h *tar.Header, dir, path string) error {
-	if !AllowExternalLinks && isExternalLink(h.Linkname, dir) {
-		return fmt.Errorf("Hard link %s points to target outside of target directory (%s)", h.Name, h.Linkname)
+	if !AllowExternalLinks && isExternalLink(h.Linkname, path, dir) {
+		return fmt.Errorf("Hard link %s points to object outside of target directory (%s)", h.Name, h.Linkname)
 	}
 
 	return os.Link(h.Linkname, path)
@@ -198,16 +198,13 @@ func updateAttrs(h *tar.Header, path string) error {
 }
 
 // isExternalLink checks if link leads to object outside target directory
-func isExternalLink(path, dir string) bool {
-	if filepath.IsAbs(path) && !strings.HasPrefix(path, dir) {
+func isExternalLink(linkPath, objPath, targetDir string) bool {
+	if filepath.IsAbs(linkPath) && !strings.HasPrefix(linkPath, targetDir) {
 		return true
 	}
 
-	realPath, err := utils.Join(dir, path)
-
-	if err != nil {
-		return true
-	}
-
-	return !strings.HasPrefix(realPath, dir)
+	return !strings.HasPrefix(
+		filepath.Clean(filepath.Dir(objPath)+"/"+linkPath),
+		targetDir,
+	)
 }
