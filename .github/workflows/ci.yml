@@ -31,11 +31,11 @@ jobs:
 
     strategy:
       matrix:
-        go: [ '1.18.x', '1.19.x', '1.20.x', '1.21.x' ]
+        go: [ '1.19.x', '1.20.x', '1.21.x' ]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -79,7 +79,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Check spelling
         continue-on-error: true
