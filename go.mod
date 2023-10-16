@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/essentialkaos/check v1.4.0
 	github.com/essentialkaos/ek/v12 v12.80.0
-	github.com/klauspost/compress v1.17.0
+	github.com/klauspost/compress v1.17.1
 	github.com/pierrec/lz4/v4 v4.1.18
 	github.com/ulikunitz/xz v0.5.11
 )
