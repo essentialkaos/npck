@@ -12,7 +12,7 @@
   <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
 </p>
 
-<p align="center"><a href="#supported-formats">Supported formats</a> • <a href="#installation">Installation</a> • <a href="#usage-example">Usage example</a> • <a href="#ci-status">CI Status</a> • <a href="#license">License</a></p>
+<p align="center"><a href="#supported-formats">Supported formats</a> • <a href="#usage-example">Usage example</a> • <a href="#ci-status">CI Status</a> • <a href="#license">License</a></p>
 
 <br/>
 
@@ -27,14 +27,6 @@
 * [Zstandart](https://facebook.github.io/zstd/) (`.zst`, `.tzst`, `.tar.zst`)
 * [LZ4](https://lz4.github.io/lz4/) (`.lz4`, `.tlz4`, `.tar.lz4`)
 * [ZIP](https://en.wikipedia.org/wiki/ZIP_(file_format)) (`.zip`)
-
-### Installation
-
-Make sure you have a working Go 1.19+ workspace (_[instructions](https://go.dev/doc/install)_), then:
-
-```bash
-go get -u github.com/essentialkaos/npck
-```
 
 ### Usage example
 
