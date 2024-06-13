@@ -1,7 +1,7 @@
-<p align="center"><a href="#readme"><img src="https://gh.kaos.st/npck.svg"/></a></p>
+<p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
-  <a href="https://kaos.sh/r/npck"><img src="https://gh.kaos.st/godoc.svg" alt="PkgGoDev" /></a>
+  <a href="https://kaos.sh/g/npck"><img src=".github/images/godoc.svg"/></a>
   <a href="https://kaos.sh/r/npck"><img src="https://kaos.sh/r/npck.svg" alt="GoReportCard" /></a>
   <a href="https://kaos.sh/l/npck"><img src="https://kaos.sh/l/058a7dfd25582ff1093c.svg" alt="Code Climate Maintainability" /></a>
   <a href="https://kaos.sh/b/npck"><img src="https://kaos.sh/b/fc322f23-4913-4edd-8f0f-33a3ce029add.svg" alt="Codebeat badge" /></a>
@@ -9,10 +9,10 @@
   <a href="https://kaos.sh/c/npck"><img src="https://kaos.sh/c/npck.svg" alt="Coverage Status" /></a>
   <a href="https://kaos.sh/w/npck/ci"><img src="https://kaos.sh/w/npck/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/npck/codeql"><img src="https://kaos.sh/w/npck/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
-  <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
+  <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
 
-<p align="center"><a href="#supported-formats">Supported formats</a> • <a href="#installation">Installation</a> • <a href="#usage-example">Usage example</a> • <a href="#ci-status">CI Status</a> • <a href="#license">License</a></p>
+<p align="center"><a href="#supported-formats">Supported formats</a> • <a href="#usage-example">Usage example</a> • <a href="#ci-status">CI Status</a> • <a href="#license">License</a></p>
 
 <br/>
 
@@ -27,14 +27,6 @@
 * [Zstandart](https://facebook.github.io/zstd/) (`.zst`, `.tzst`, `.tar.zst`)
 * [LZ4](https://lz4.github.io/lz4/) (`.lz4`, `.tlz4`, `.tar.lz4`)
 * [ZIP](https://en.wikipedia.org/wiki/ZIP_(file_format)) (`.zip`)
-
-### Installation
-
-Make sure you have a working Go 1.19+ workspace (_[instructions](https://go.dev/doc/install)_), then:
-
-```bash
-go get -u github.com/essentialkaos/npck
-```
 
 ### Usage example
 
