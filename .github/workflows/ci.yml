@@ -46,7 +46,7 @@ jobs:
         run: make deps
 
       - name: Run tests
-        run: go test -v -covermode count -coverprofile cover.out ./...
+        run: make test COVERAGE_FILE=cover.out
 
       - name: Send coverage data to Coveralls
         uses: essentialkaos/goveralls-action@v2
