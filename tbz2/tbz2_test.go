@@ -11,8 +11,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/essentialkaos/ek/v12/fsutil"
-	"github.com/essentialkaos/ek/v12/hash"
+	"github.com/essentialkaos/ek/v13/fsutil"
+	"github.com/essentialkaos/ek/v13/hash"
 
 	. "github.com/essentialkaos/check"
 )

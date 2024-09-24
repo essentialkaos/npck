@@ -54,9 +54,9 @@ func (s *UtilsSuite) TestJoin(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(p, Matches, "*/test/test.log")
 
-	p, err = Join(testDir, "mytest/../test2.link")
+	_, err = Join(testDir, "mytest/../test2.link")
 	c.Assert(err, NotNil)
 
-	p, err = Join(testDir, "mytest/../test3.link")
+	_, err = Join(testDir, "mytest/../test3.link")
 	c.Assert(err, NotNil)
 }

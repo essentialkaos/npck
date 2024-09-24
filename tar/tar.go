@@ -150,6 +150,10 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 	bw := bufio.NewWriter(fd)
 	_, err = io.Copy(bw, r)
 
+	if err != nil {
+		return err
+	}
+
 	bw.Flush()
 	fd.Close()
 
