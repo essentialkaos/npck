@@ -22,6 +22,12 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// MaxReadLimit is the maximum read limit for decompression bomb
+// protection (default: 1GB)
+var MaxReadLimit int64 = 1024 * 1024 * 1024
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 var (
 	ErrNilReader   = fmt.Errorf("Reader can not be nil")
 	ErrEmptyOutput = fmt.Errorf("Path to output directory can not be empty")
@@ -95,7 +101,7 @@ func Read(r io.ReaderAt, dir string) error {
 		}
 
 		bw := bufio.NewWriter(fd)
-		_, err = io.Copy(bw, zfd)
+		_, err = io.Copy(bw, io.LimitReader(zfd, MaxReadLimit))
 
 		bw.Flush()
 		fd.Close()

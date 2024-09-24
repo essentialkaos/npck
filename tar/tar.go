@@ -32,6 +32,10 @@ var UpdateTimes = true
 // outside target directory
 var AllowExternalLinks = false
 
+// MaxReadLimit is the maximum read limit for decompression bomb
+// protection (default: 1GB)
+var MaxReadLimit int64 = 1024 * 1024 * 1024
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
@@ -148,7 +152,7 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 	}
 
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, r)
+	_, err = io.Copy(bw, io.LimitReader(r, MaxReadLimit))
 
 	if err != nil {
 		return err
