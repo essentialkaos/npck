@@ -2,9 +2,7 @@
 
 <p align="center">
   <a href="https://kaos.sh/g/npck"><img src=".github/images/godoc.svg"/></a>
-  <a href="https://kaos.sh/l/npck"><img src="https://kaos.sh/l/058a7dfd25582ff1093c.svg" alt="Code Climate Maintainability" /></a>
   <a href="https://kaos.sh/y/npck"><img src="https://kaos.sh/y/fdbafdcb2caa4516afbd5feabebce511.svg" alt="Codacy" /></a>
-  <br/>
   <a href="https://kaos.sh/c/npck"><img src="https://kaos.sh/c/npck.svg" alt="Coverage Status" /></a>
   <a href="https://kaos.sh/w/npck/ci"><img src="https://kaos.sh/w/npck/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/npck/codeql"><img src="https://kaos.sh/w/npck/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
@@ -57,8 +55,12 @@ func main() {
 | `master` | [![CI](https://kaos.sh/w/npck/ci.svg?branch=master)](https://kaos.sh/w/npck/ci?query=branch:master) |
 | `develop` | [![CI](https://kaos.sh/w/npck/ci.svg?branch=develop)](https://kaos.sh/w/npck/ci?query=branch:develop) |
 
+### Contributing
+
+Before contributing to this project please read our [Contributing Guidelines](https://github.com/essentialkaos/.github/blob/master/CONTRIBUTING.md).
+
 ### License
 
 [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-<p align="center"><a href="https://essentialkaos.com"><img src="https://gh.kaos.st/ekgh.svg"/></a></p>
+<p align="center"><a href="https://kaos.dev"><img src="https://raw.githubusercontent.com/essentialkaos/.github/refs/heads/master/images/ekgh.svg"/></a></p>
