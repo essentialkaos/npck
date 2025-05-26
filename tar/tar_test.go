@@ -9,13 +9,14 @@ package tar
 
 import (
 	"archive/tar"
+	"crypto/sha256"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/essentialkaos/ek/v13/fsutil"
-	"github.com/essentialkaos/ek/v13/hash"
+	"github.com/essentialkaos/ek/v13/hashutil"
 
 	. "github.com/essentialkaos/check"
 )
@@ -44,7 +45,7 @@ func (s *TarSuite) TestUnpack(c *C) {
 	c.Assert(fsutil.IsExist(dir+"/data/payload.txt"), Equals, true)
 	c.Assert(fsutil.GetMode(dir+"/data/payload.txt"), Equals, os.FileMode(0644))
 
-	c.Assert(hash.FileHash(dir+"/data/payload.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
+	c.Assert(hashutil.File(dir+"/data/payload.txt", sha256.New()), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
 }
 
 func (s *TarSuite) TestCPIOUnpack(c *C) {
@@ -59,7 +60,7 @@ func (s *TarSuite) TestCPIOUnpack(c *C) {
 	c.Assert(fsutil.IsExist(dir+"/data/payload.txt"), Equals, true)
 	c.Assert(fsutil.GetMode(dir+"/data/payload.txt"), Equals, os.FileMode(0644))
 
-	c.Assert(hash.FileHash(dir+"/data/payload.txt"), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
+	c.Assert(hashutil.File(dir+"/data/payload.txt", sha256.New()), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
 }
 
 func (s *TarSuite) TestErrors(c *C) {
