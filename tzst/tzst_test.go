@@ -47,7 +47,7 @@ func (s *TZSTSuite) TestUnpack(c *C) {
 	c.Assert(fsutil.IsExist(s.Dir+"/data/payload.txt"), Equals, true)
 	c.Assert(fsutil.GetMode(s.Dir+"/data/payload.txt"), Equals, os.FileMode(0644))
 
-	c.Assert(hashutil.File(s.Dir+"/data/payload.txt", sha256.New()), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
+	c.Assert(hashutil.File(s.Dir+"/data/payload.txt", sha256.New()).String(), Equals, "918c03a211adc19a466c9db22efa575efb6c488fd41c70e57b1ec0920f1a1d8c")
 }
 
 func (s *TZSTSuite) TestErrors(c *C) {
