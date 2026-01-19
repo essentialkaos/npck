@@ -5,8 +5,8 @@ go 1.24.6
 require (
 	github.com/essentialkaos/check v1.4.1
 	github.com/essentialkaos/ek/v13 v13.38.2
-	github.com/klauspost/compress v1.18.2
-	github.com/pierrec/lz4/v4 v4.1.23
+	github.com/klauspost/compress v1.18.3
+	github.com/pierrec/lz4/v4 v4.1.25
 	github.com/ulikunitz/xz v0.5.15
 )
 
