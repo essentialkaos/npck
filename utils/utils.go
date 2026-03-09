@@ -10,9 +10,9 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -56,8 +56,6 @@ func IsExternalPath(root, path string) bool {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 func isLink(path string) bool {
-	var buf = make([]byte, 1)
-	_, err := syscall.Readlink(path, buf)
-
-	return err == nil
+	fi, err := os.Lstat(path)
+	return err == nil && fi.Mode()&os.ModeSymlink != 0
 }
