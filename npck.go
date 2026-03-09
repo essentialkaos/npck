@@ -35,11 +35,10 @@ var ErrUnsupportedFormat = errors.New("unknown or unsupported archive type")
 
 // Unpack unpacks archive file to given directory
 func Unpack(file, dir string) error {
-	ext := filepath.Ext(file)
-	ext = strings.ToLower(ext)
+	fileLower := strings.ToLower(file)
+	ext := filepath.Ext(fileLower)
 
-	if strings.HasSuffix(file, ".tar"+ext) ||
-		strings.HasSuffix(file, ".TAR"+ext) {
+	if strings.HasSuffix(fileLower, ".tar"+ext) {
 		ext = ".tar" + ext
 	}
 

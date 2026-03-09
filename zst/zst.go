@@ -10,7 +10,6 @@ package zst
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -24,9 +23,9 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = errors.New("reader is nil")
-	ErrEmptyInput  = errors.New("path to input file is empty")
-	ErrEmptyOutput = errors.New("path to output file is empty")
+	ErrNilReader   = utils.ErrNilReader
+	ErrEmptyInput  = utils.ErrEmptyInput
+	ErrEmptyOutput = utils.ErrEmptyOutput
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

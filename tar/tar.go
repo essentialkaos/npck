@@ -11,7 +11,6 @@ package tar
 import (
 	"archive/tar"
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,7 +25,7 @@ import (
 // UpdateOwner is flag for restoring owner for files and directories
 var UpdateOwner = false
 
-// UpdateOwner is flag for restoring mtime and atime
+// UpdateTimes is flag for restoring mtime and atime
 var UpdateTimes = true
 
 // AllowExternalLinks is flag for protection against links to files and directories
@@ -40,8 +39,8 @@ var MaxReadLimit int64 = 1024 * 1024 * 1024
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = errors.New("reader is nil")
-	ErrEmptyOutput = errors.New("path to output directory is empty")
+	ErrNilReader   = utils.ErrNilReader
+	ErrEmptyOutput = utils.ErrEmptyOutput
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

@@ -11,16 +11,16 @@ package tbz2
 import (
 	"bufio"
 	"compress/bzip2"
-	"errors"
 	"io"
 	"os"
 
 	"github.com/essentialkaos/npck/tar"
+	"github.com/essentialkaos/npck/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var ErrNilReader = errors.New("reader is nil")
+var ErrNilReader = utils.ErrNilReader
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 

@@ -10,18 +10,18 @@ package tlz4
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"os"
 
 	"github.com/pierrec/lz4/v4"
 
 	"github.com/essentialkaos/npck/tar"
+	"github.com/essentialkaos/npck/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var ErrNilReader = errors.New("reader is nil")
+var ErrNilReader = utils.ErrNilReader
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 

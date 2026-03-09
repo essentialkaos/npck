@@ -10,7 +10,6 @@ package zip
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -30,8 +29,8 @@ var MaxReadLimit int64 = 1024 * 1024 * 1024
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = errors.New("reader is nil")
-	ErrEmptyOutput = errors.New("path to output directory is empty")
+	ErrNilReader   = utils.ErrNilReader
+	ErrEmptyOutput = utils.ErrEmptyOutput
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

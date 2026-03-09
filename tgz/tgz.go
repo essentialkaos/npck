@@ -10,18 +10,18 @@ package tgz
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"os"
 
 	"github.com/klauspost/compress/gzip"
 
 	"github.com/essentialkaos/npck/tar"
+	"github.com/essentialkaos/npck/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var ErrNilReader = errors.New("reader is nil")
+var ErrNilReader = utils.ErrNilReader
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 

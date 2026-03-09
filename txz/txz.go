@@ -10,18 +10,18 @@ package txz
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"os"
 
 	"github.com/ulikunitz/xz"
 
 	"github.com/essentialkaos/npck/tar"
+	"github.com/essentialkaos/npck/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var ErrNilReader = errors.New("reader is nil")
+var ErrNilReader = utils.ErrNilReader
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 

@@ -11,7 +11,6 @@ package bz2
 import (
 	"bufio"
 	"compress/bzip2"
-	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -29,9 +28,9 @@ var MaxReadLimit int64 = 1024 * 1024 * 1024
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = errors.New("reader is nil")
-	ErrEmptyInput  = errors.New("path to input file is empty")
-	ErrEmptyOutput = errors.New("path to output file is empty")
+	ErrNilReader   = utils.ErrNilReader
+	ErrEmptyInput  = utils.ErrEmptyInput
+	ErrEmptyOutput = utils.ErrEmptyOutput
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

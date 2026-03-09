@@ -10,18 +10,18 @@ package tzst
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"os"
 
 	"github.com/klauspost/compress/zstd"
 
 	"github.com/essentialkaos/npck/tar"
+	"github.com/essentialkaos/npck/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var ErrNilReader = errors.New("reader is nil")
+var ErrNilReader = utils.ErrNilReader
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 

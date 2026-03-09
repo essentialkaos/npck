@@ -10,7 +10,6 @@ package gz
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -30,9 +29,9 @@ var MaxReadLimit int64 = 1024 * 1024 * 1024
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = errors.New("reader is nil")
-	ErrEmptyInput  = errors.New("path to input file is empty")
-	ErrEmptyOutput = errors.New("path to output file is empty")
+	ErrNilReader   = utils.ErrNilReader
+	ErrEmptyInput  = utils.ErrEmptyInput
+	ErrEmptyOutput = utils.ErrEmptyOutput
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -89,6 +88,8 @@ func Read(r io.Reader, output string) error {
 	if err != nil {
 		return err
 	}
+
+	defer cr.Close()
 
 	bw := bufio.NewWriter(fd)
 	_, err = io.Copy(bw, io.LimitReader(cr, MaxReadLimit))
