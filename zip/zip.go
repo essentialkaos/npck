@@ -29,15 +29,21 @@ var MaxReadLimit int64 = 1024 * 1024 * 1024
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = fmt.Errorf("Reader can not be nil")
-	ErrEmptyOutput = fmt.Errorf("Path to output directory can not be empty")
+	ErrNilReader   = fmt.Errorf("reader can not be nil")
+	ErrEmptyOutput = fmt.Errorf("path to output directory can not be empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Unpacks file to given directory
 func Unpack(file, dir string) error {
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	fi, err := os.Stat(file)
+
+	if err != nil {
+		return err
+	}
+
+	fd, err := os.Open(file)
 
 	if err != nil {
 		return err
@@ -45,20 +51,22 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(fd, dir)
+	return Read(fd, fi.Size(), dir)
 }
 
 // Read reads compressed data using given reader and unpacks it to
 // the given directory
-func Read(r io.ReaderAt, dir string) error {
+func Read(r io.ReaderAt, size int64, dir string) error {
 	switch {
 	case r == nil:
 		return ErrNilReader
 	case dir == "":
 		return ErrEmptyOutput
+	case size <= 0:
+		return fmt.Errorf("invalid data size (%d < 0)", size)
 	}
 
-	zr, err := zip.NewReader(r, 4096)
+	zr, err := zip.NewReader(r, size)
 
 	if err != nil {
 		return err
@@ -68,7 +76,7 @@ func Read(r io.ReaderAt, dir string) error {
 		header := file.FileHeader
 
 		if strings.Contains(header.Name, "..") {
-			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
+			return fmt.Errorf("path %q contains directory traversal element and cannot be used", header.Name)
 		}
 
 		info := header.FileInfo()

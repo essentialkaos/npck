@@ -58,15 +58,18 @@ func (s *ZipSuite) TestErrors(c *C) {
 	err = Unpack("../.testdata/data.zip", "/unknown")
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Read(nil, 4096, "/unknown")
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Read(nil, 4096, "/unknown")
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "")
+	err = Read(strings.NewReader(""), 4096, "")
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), s.Dir)
+	err = Read(strings.NewReader(""), 4096, s.Dir)
+	c.Assert(err, NotNil)
+
+	err = Read(strings.NewReader(""), -1, s.Dir)
 	c.Assert(err, NotNil)
 }

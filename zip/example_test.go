@@ -28,14 +28,22 @@ func ExampleUnpack() {
 
 func ExampleRead() {
 	file := "file.zip"
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+
+	fi, err := os.Stat(file)
 
 	if err != nil {
-		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
+		fmt.Printf("Error: Can't check file %s stat: %v\n", file, err)
 		return
 	}
 
-	err = Read(fd, "/home/bob/data")
+	fd, err := os.Open(file)
+
+	if err != nil {
+		fmt.Printf("Error: Can't open file %s: %v\n", file, err)
+		return
+	}
+
+	err = Read(fd, fi.Size(), "/home/bob/data")
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
