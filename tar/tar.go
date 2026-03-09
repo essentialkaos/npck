@@ -11,6 +11,7 @@ package tar
 import (
 	"archive/tar"
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -39,13 +40,13 @@ var MaxReadLimit int64 = 1024 * 1024 * 1024
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = fmt.Errorf("Reader can not be nil")
-	ErrEmptyOutput = fmt.Errorf("Path to output directory can not be empty")
+	ErrNilReader   = errors.New("reader is nil")
+	ErrEmptyOutput = errors.New("path to output directory is empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpacks file to given directory
+// Unpack unpacks archive file to given directory
 func Unpack(file, dir string) error {
 	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
 
@@ -86,7 +87,7 @@ func Read(r io.Reader, dir string) error {
 		}
 
 		if strings.Contains(header.Name, "..") {
-			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
+			return fmt.Errorf("path %q contains directory traversal element and cannot be used", header.Name)
 		}
 
 		path, err := utils.Join(dir, header.Name)
@@ -106,7 +107,7 @@ func Read(r io.Reader, dir string) error {
 			err = createSymlink(header, dir, path)
 		default:
 			err = fmt.Errorf(
-				"Object %s has unsupported type (%d)",
+				"object %q has unsupported type (%d)",
 				header.Name, header.Typeflag,
 			)
 		}
@@ -137,8 +138,12 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 	dir := filepath.Dir(path)
 	_, err := os.Stat(dir)
 
-	if os.IsNotExist(err) {
-		err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+
+		err = os.MkdirAll(dir, 0755)
 
 		if err != nil {
 			return err
@@ -151,6 +156,8 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 		return err
 	}
 
+	defer fd.Close()
+
 	bw := bufio.NewWriter(fd)
 	_, err = io.Copy(bw, io.LimitReader(r, MaxReadLimit))
 
@@ -158,8 +165,11 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 		return err
 	}
 
-	bw.Flush()
-	fd.Close()
+	err = bw.Flush()
+
+	if err != nil {
+		return err
+	}
 
 	return updateAttrs(h, path)
 }
@@ -167,7 +177,7 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 // createSymlink creates symbolic link
 func createSymlink(h *tar.Header, dir, path string) error {
 	if !AllowExternalLinks && isExternalLink(h.Linkname, path, dir) {
-		return fmt.Errorf("Symbolic link %s points to object outside of target directory (%s)", h.Name, h.Linkname)
+		return fmt.Errorf("symbolic link %q points to object outside of target directory (%q)", h.Name, h.Linkname)
 	}
 
 	return os.Symlink(h.Linkname, path)
@@ -176,10 +186,16 @@ func createSymlink(h *tar.Header, dir, path string) error {
 // createHardlink creates hard link
 func createHardlink(h *tar.Header, dir, path string) error {
 	if !AllowExternalLinks && isExternalLink(h.Linkname, path, dir) {
-		return fmt.Errorf("Hard link %s points to object outside of target directory (%s)", h.Name, h.Linkname)
+		return fmt.Errorf("hard link %q points to object outside of target directory (%q)", h.Name, h.Linkname)
 	}
 
-	return os.Link(h.Linkname, path)
+	linkTarget, err := utils.Join(dir, h.Linkname)
+
+	if err != nil {
+		return err
+	}
+
+	return os.Link(linkTarget, path)
 }
 
 // updateAttrs updates target attributes
@@ -207,12 +223,10 @@ func updateAttrs(h *tar.Header, path string) error {
 
 // isExternalLink checks if link leads to object outside target directory
 func isExternalLink(linkPath, objPath, targetDir string) bool {
-	if filepath.IsAbs(linkPath) && !strings.HasPrefix(linkPath, targetDir) {
-		return true
+	if !filepath.IsAbs(linkPath) {
+		linkPath = filepath.Clean(filepath.Join(filepath.Dir(objPath), linkPath))
 	}
 
-	return !strings.HasPrefix(
-		filepath.Clean(filepath.Dir(objPath)+"/"+linkPath),
-		targetDir,
-	)
+	return linkPath != targetDir &&
+		!strings.HasPrefix(linkPath, targetDir+string(filepath.Separator))
 }

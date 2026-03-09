@@ -9,7 +9,7 @@ package npck
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
-	"fmt"
+	"errors"
 	"path/filepath"
 	"strings"
 
@@ -29,11 +29,11 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var ErrUnsupportedFormat = fmt.Errorf("Unknown or unsupported archive type")
+var ErrUnsupportedFormat = errors.New("unknown or unsupported archive type")
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpack unpacks given file
+// Unpack unpacks archive file to given directory
 func Unpack(file, dir string) error {
 	ext := filepath.Ext(file)
 	ext = strings.ToLower(ext)

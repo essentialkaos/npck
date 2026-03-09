@@ -35,16 +35,22 @@ func Join(root string, elem ...string) (string, error) {
 			result, err = filepath.EvalSymlinks(result)
 
 			if err != nil {
-				return "", fmt.Errorf("Can't eval symlinks: %w", err)
+				return "", fmt.Errorf("can't eval symlinks: %w", err)
 			}
 		}
 	}
 
-	if !strings.HasPrefix(result, root) {
-		return "", fmt.Errorf("Final destination (%s) is outside root (%s)", result, root)
+	if IsExternalPath(root, result) {
+		return "", fmt.Errorf("final destination (%s) is outside root (%s)", result, root)
 	}
 
 	return result, nil
+}
+
+// IsExternalPath returns true if given path is outside of root
+func IsExternalPath(root, path string) bool {
+	rel, err := filepath.Rel(root, path)
+	return err != nil || strings.HasPrefix(rel, "..")
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //

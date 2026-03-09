@@ -11,7 +11,7 @@ package bz2
 import (
 	"bufio"
 	"compress/bzip2"
-	"fmt"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -29,14 +29,14 @@ var MaxReadLimit int64 = 1024 * 1024 * 1024
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = fmt.Errorf("Reader can not be nil")
-	ErrEmptyInput  = fmt.Errorf("Path to input file can not be empty")
-	ErrEmptyOutput = fmt.Errorf("Path to output file can not be empty")
+	ErrNilReader   = errors.New("reader is nil")
+	ErrEmptyInput  = errors.New("path to input file is empty")
+	ErrEmptyOutput = errors.New("path to output file is empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpacks file to given directory
+// Unpack unpacks archive file to given directory
 func Unpack(file, dir string) error {
 	switch {
 	case file == "":
@@ -54,7 +54,7 @@ func Unpack(file, dir string) error {
 		return err
 	}
 
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	fd, err := os.Open(file)
 
 	if err != nil {
 		return err
@@ -81,11 +81,14 @@ func Read(r io.Reader, output string) error {
 		return err
 	}
 
+	defer fd.Close()
+
 	bw := bufio.NewWriter(fd)
 	_, err = io.Copy(bw, io.LimitReader(bzip2.NewReader(r), MaxReadLimit))
 
-	bw.Flush()
-	fd.Close()
+	if err != nil {
+		return err
+	}
 
-	return err
+	return bw.Flush()
 }

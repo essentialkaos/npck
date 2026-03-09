@@ -10,6 +10,7 @@ package zip
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -29,13 +30,13 @@ var MaxReadLimit int64 = 1024 * 1024 * 1024
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = fmt.Errorf("reader can not be nil")
-	ErrEmptyOutput = fmt.Errorf("path to output directory can not be empty")
+	ErrNilReader   = errors.New("reader is nil")
+	ErrEmptyOutput = errors.New("path to output directory is empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpacks file to given directory
+// Unpack unpacks archive file to given directory
 func Unpack(file, dir string) error {
 	fi, err := os.Stat(file)
 
@@ -102,21 +103,30 @@ func Read(r io.ReaderAt, size int64, dir string) error {
 			return err
 		}
 
+		defer zfd.Close()
+
 		fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
 
 		if err != nil {
 			return err
 		}
 
+		defer fd.Close()
+
 		bw := bufio.NewWriter(fd)
 		_, err = io.Copy(bw, io.LimitReader(zfd, MaxReadLimit))
-
-		bw.Flush()
-		fd.Close()
 
 		if err != nil {
 			return err
 		}
+
+		err = bw.Flush()
+
+		if err != nil {
+			return err
+		}
+
+		fd.Close()
 	}
 
 	return nil

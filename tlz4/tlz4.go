@@ -10,7 +10,7 @@ package tlz4
 
 import (
 	"bufio"
-	"fmt"
+	"errors"
 	"io"
 	"os"
 
@@ -21,13 +21,13 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var ErrNilReader = fmt.Errorf("Reader can not be nil")
+var ErrNilReader = errors.New("reader is nil")
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpacks file to given directory
+// Unpack unpacks archive file to given directory
 func Unpack(file, dir string) error {
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	fd, err := os.Open(file)
 
 	if err != nil {
 		return err
