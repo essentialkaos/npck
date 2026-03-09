@@ -22,9 +22,17 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// MaxReadLimit is the maximum read limit for decompression bomb
-// protection (default: 1GB)
-var MaxReadLimit int64 = 1024 * 1024 * 1024
+// DEFAULT_MAX_READ_LIMIT is default the maximum read limit (1GB)
+const DEFAULT_MAX_READ_LIMIT int64 = 1024 * 1024 * 1024
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// Options is reader options
+type Options struct {
+	// MaxReadLimit is the maximum read limit for decompression bomb
+	// protection (default: 1GB)
+	MaxReadLimit int64
+}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -37,7 +45,7 @@ var (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Unpacks file to given directory
-func Unpack(file, dir string) error {
+func Unpack(file, dir string, options Options) error {
 	switch {
 	case file == "":
 		return ErrEmptyInput
@@ -62,12 +70,12 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), path)
+	return Read(bufio.NewReader(fd), path, options)
 }
 
 // Read reads compressed data using given reader and unpacks it to
 // the given directory
-func Read(r io.Reader, output string) error {
+func Read(r io.Reader, output string, options Options) error {
 	switch {
 	case r == nil:
 		return ErrNilReader
@@ -91,8 +99,14 @@ func Read(r io.Reader, output string) error {
 
 	defer cr.Close()
 
+	limit := options.MaxReadLimit
+
+	if limit == 0 {
+		limit = DEFAULT_MAX_READ_LIMIT
+	}
+
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, io.LimitReader(cr, MaxReadLimit))
+	_, err = io.Copy(bw, io.LimitReader(cr, limit))
 
 	if err != nil {
 		return err

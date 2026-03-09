@@ -38,7 +38,7 @@ func (s *BZ2Suite) SetUpSuite(c *C) {
 }
 
 func (s *BZ2Suite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.txt.bz2", s.Dir)
+	err := Unpack("../.testdata/data.txt.bz2", s.Dir, Options{})
 
 	c.Assert(err, IsNil)
 
@@ -49,24 +49,24 @@ func (s *BZ2Suite) TestUnpack(c *C) {
 }
 
 func (s *BZ2Suite) TestErrors(c *C) {
-	err := Unpack("", "/_unknown")
+	err := Unpack("", "/_unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.txt.bz2", "")
+	err = Unpack("../.testdata/data.txt.bz2", "", Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("/_unknown", s.Dir)
+	err = Unpack("/_unknown", s.Dir, Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("/_unknown", "/root")
+	err = Unpack("/_unknown", "/root", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/_unknown")
+	err = Read(nil, "/_unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "")
+	err = Read(strings.NewReader(""), "", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "/_unknown")
+	err = Read(strings.NewReader(""), "/_unknown", Options{})
 	c.Assert(err, NotNil)
 }

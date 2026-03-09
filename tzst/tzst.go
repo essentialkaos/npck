@@ -26,7 +26,7 @@ var ErrNilReader = utils.ErrNilReader
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Unpack unpacks archive file to given directory
-func Unpack(file, dir string) error {
+func Unpack(file, dir string, options tar.Options) error {
 	fd, err := os.Open(file)
 
 	if err != nil {
@@ -35,12 +35,12 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), dir)
+	return Read(bufio.NewReader(fd), dir, options)
 }
 
 // Read reads compressed data using given reader and unpacks it to
 // the given directory
-func Read(r io.Reader, dir string) error {
+func Read(r io.Reader, dir string, options tar.Options) error {
 	if r == nil {
 		return ErrNilReader
 	}
@@ -51,5 +51,5 @@ func Read(r io.Reader, dir string) error {
 		return err
 	}
 
-	return tar.Read(cr, dir)
+	return tar.Read(cr, dir, options)
 }

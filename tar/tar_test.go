@@ -35,7 +35,7 @@ var _ = Suite(&TarSuite{})
 
 func (s *TarSuite) TestUnpack(c *C) {
 	dir := c.MkDir()
-	err := Unpack("../.testdata/data.tar", dir)
+	err := Unpack("../.testdata/data.tar", dir, Options{UpdateTimes: true})
 
 	c.Assert(err, IsNil)
 
@@ -50,12 +50,12 @@ func (s *TarSuite) TestUnpack(c *C) {
 
 func (s *TarSuite) TestCPIOUnpack(c *C) {
 	dir := c.MkDir()
-	err := Unpack("../.testdata/data-cpio.tar", dir)
+	err := Unpack("../.testdata/data-cpio.tar", dir, Options{UpdateTimes: true})
 
 	c.Assert(err, IsNil)
 
 	c.Assert(fsutil.IsExist(dir+"/data"), Equals, true)
-	c.Assert(fsutil.GetMode(dir+"/data"), Equals, os.FileMode(0755))
+	c.Assert(fsutil.GetMode(dir+"/data"), Equals, os.FileMode(0750))
 
 	c.Assert(fsutil.IsExist(dir+"/data/payload.txt"), Equals, true)
 	c.Assert(fsutil.GetMode(dir+"/data/payload.txt"), Equals, os.FileMode(0644))
@@ -66,52 +66,48 @@ func (s *TarSuite) TestCPIOUnpack(c *C) {
 func (s *TarSuite) TestErrors(c *C) {
 	dir := c.MkDir()
 
-	err := Unpack("../.testdata/unknown.tar", dir)
+	err := Unpack("../.testdata/unknown.tar", dir, Options{UpdateTimes: true})
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.tar", "/unknown")
+	err = Unpack("../.testdata/data.tar", "/unknown", Options{UpdateTimes: true})
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Read(nil, "/unknown", Options{UpdateTimes: true})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "")
+	err = Read(strings.NewReader(""), "", Options{UpdateTimes: true})
 	c.Assert(err, NotNil)
 
-	err = createDir(&tar.Header{}, "/_unknown")
+	err = createDir(&tar.Header{}, "/_unknown", Options{UpdateTimes: true})
 	c.Assert(err, NotNil)
 
-	err = createFile(&tar.Header{}, nil, "/_unknown")
+	err = createFile(&tar.Header{}, nil, "/_unknown", Options{UpdateTimes: true})
 	c.Assert(err, NotNil)
 
-	err = createSymlink(&tar.Header{Linkname: "/__unknown"}, "", "/_unknown")
+	err = createSymlink(&tar.Header{Linkname: "/__unknown"}, "", "/_unknown", false)
 	c.Assert(err, NotNil)
 
-	err = createHardlink(&tar.Header{Linkname: "/__unknown"}, "", "/_unknown")
+	err = createHardlink(&tar.Header{Linkname: "/__unknown"}, "", "/_unknown", false)
 	c.Assert(err, NotNil)
 
-	UpdateTimes, UpdateOwner = true, false
 	err = updateAttrs(&tar.Header{
 		Linkname:   "/__unknown",
 		AccessTime: time.Now(),
 		ModTime:    time.Now(),
-	}, "/_unknown")
+	}, "/_unknown", Options{UpdateTimes: true, UpdateOwner: false})
 	c.Assert(err, NotNil)
 
-	UpdateTimes, UpdateOwner = false, true
 	err = updateAttrs(&tar.Header{
 		Linkname:   "/__unknown",
 		AccessTime: time.Now(),
 		ModTime:    time.Now(),
-	}, "/_unknown")
+	}, "/_unknown", Options{UpdateTimes: false, UpdateOwner: true})
 	c.Assert(err, NotNil)
 
-	UpdateTimes, UpdateOwner = true, false
-
-	err = createSymlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown")
+	err = createSymlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown", false)
 	c.Assert(err, NotNil)
 
-	err = createHardlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown")
+	err = createHardlink(&tar.Header{Linkname: "/root/test"}, "/unknown", "/_unknown", false)
 	c.Assert(err, NotNil)
 
 	c.Assert(isExternalLink("../../unknown", "/root/test", "/root"), Equals, true)

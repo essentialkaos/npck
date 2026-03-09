@@ -22,19 +22,32 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UpdateOwner is flag for restoring owner for files and directories
-var UpdateOwner = false
+// DEFAULT_MAX_READ_LIMIT is default the maximum read limit (1GB)
+const DEFAULT_MAX_READ_LIMIT int64 = 1024 * 1024 * 1024
 
-// UpdateTimes is flag for restoring mtime and atime
-var UpdateTimes = true
+// DEFAULT_DIR_MODE is default mode for directories
+const DEFAULT_DIR_MODE os.FileMode = 0750
 
-// AllowExternalLinks is flag for protection against links to files and directories
-// outside target directory
-var AllowExternalLinks = false
+// ////////////////////////////////////////////////////////////////////////////////// //
 
-// MaxReadLimit is the maximum read limit for decompression bomb
-// protection (default: 1GB)
-var MaxReadLimit int64 = 1024 * 1024 * 1024
+type Options struct {
+	// MaxReadLimit is the maximum read limit for decompression bomb
+	// protection (default: 1GB)
+	MaxReadLimit int64
+
+	// DirMode is mode for all created directories (default: 0750)
+	DirMode os.FileMode
+
+	// AllowExternalLinks is flag for protection against links to files and directories
+	// outside target directory
+	AllowExternalLinks bool
+
+	// UpdateTimes is flag for restoring mtime and atime
+	UpdateTimes bool
+
+	// UpdateOwner is flag for restoring owner for files and directories
+	UpdateOwner bool
+}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -43,10 +56,17 @@ var (
 	ErrEmptyOutput = utils.ErrEmptyOutput
 )
 
+// DefaultOptions is default unpacking options
+var DefaultOptions = Options{
+	MaxReadLimit: DEFAULT_MAX_READ_LIMIT,
+	DirMode:      0750,
+	UpdateTimes:  true,
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Unpack unpacks archive file to given directory
-func Unpack(file, dir string) error {
+func Unpack(file, dir string, options Options) error {
 	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
 
 	if err != nil {
@@ -55,12 +75,12 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), dir)
+	return Read(bufio.NewReader(fd), dir, options)
 }
 
 // Read reads compressed data using given reader and unpacks it to
 // the given directory
-func Read(r io.Reader, dir string) error {
+func Read(r io.Reader, dir string, options Options) error {
 	switch {
 	case r == nil:
 		return ErrNilReader
@@ -97,13 +117,13 @@ func Read(r io.Reader, dir string) error {
 
 		switch header.Typeflag {
 		case tar.TypeReg:
-			err = createFile(header, tr, path)
+			err = createFile(header, tr, path, options)
 		case tar.TypeDir:
-			err = createDir(header, path)
+			err = createDir(header, path, options)
 		case tar.TypeLink:
-			err = createHardlink(header, dir, path)
+			err = createHardlink(header, dir, path, options.AllowExternalLinks)
 		case tar.TypeSymlink:
-			err = createSymlink(header, dir, path)
+			err = createSymlink(header, dir, path, options.AllowExternalLinks)
 		default:
 			err = fmt.Errorf(
 				"object %q has unsupported type (%d)",
@@ -122,27 +142,33 @@ func Read(r io.Reader, dir string) error {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // createDir creates new directory
-func createDir(h *tar.Header, path string) error {
+func createDir(h *tar.Header, path string, options Options) error {
 	err := os.MkdirAll(path, h.FileInfo().Mode())
 
 	if err != nil {
 		return err
 	}
 
-	return updateAttrs(h, path)
+	return updateAttrs(h, path, options)
 }
 
 // createFile creates new file
-func createFile(h *tar.Header, r io.Reader, path string) error {
+func createFile(h *tar.Header, r io.Reader, path string, options Options) error {
 	dir := filepath.Dir(path)
 	_, err := os.Stat(dir)
+
+	mode := options.DirMode
+
+	if mode == 0 {
+		mode = DEFAULT_DIR_MODE
+	}
 
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
 		}
 
-		err = os.MkdirAll(dir, 0755)
+		err = os.MkdirAll(dir, mode)
 
 		if err != nil {
 			return err
@@ -157,8 +183,14 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 
 	defer fd.Close()
 
+	limit := options.MaxReadLimit
+
+	if limit == 0 {
+		limit = DEFAULT_MAX_READ_LIMIT
+	}
+
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, io.LimitReader(r, MaxReadLimit))
+	_, err = io.Copy(bw, io.LimitReader(r, limit))
 
 	if err != nil {
 		return err
@@ -170,12 +202,12 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 		return err
 	}
 
-	return updateAttrs(h, path)
+	return updateAttrs(h, path, options)
 }
 
 // createSymlink creates symbolic link
-func createSymlink(h *tar.Header, dir, path string) error {
-	if !AllowExternalLinks && isExternalLink(h.Linkname, path, dir) {
+func createSymlink(h *tar.Header, dir, path string, allowExternalLinks bool) error {
+	if !allowExternalLinks && isExternalLink(h.Linkname, path, dir) {
 		return fmt.Errorf("symbolic link %q points to object outside of target directory (%q)", h.Name, h.Linkname)
 	}
 
@@ -183,8 +215,8 @@ func createSymlink(h *tar.Header, dir, path string) error {
 }
 
 // createHardlink creates hard link
-func createHardlink(h *tar.Header, dir, path string) error {
-	if !AllowExternalLinks && isExternalLink(h.Linkname, path, dir) {
+func createHardlink(h *tar.Header, dir, path string, allowExternalLinks bool) error {
+	if !allowExternalLinks && isExternalLink(h.Linkname, path, dir) {
 		return fmt.Errorf("hard link %q points to object outside of target directory (%q)", h.Name, h.Linkname)
 	}
 
@@ -198,10 +230,10 @@ func createHardlink(h *tar.Header, dir, path string) error {
 }
 
 // updateAttrs updates target attributes
-func updateAttrs(h *tar.Header, path string) error {
+func updateAttrs(h *tar.Header, path string, options Options) error {
 	var err error
 
-	if UpdateTimes {
+	if options.UpdateTimes {
 		err = os.Chtimes(path, h.AccessTime, h.ModTime)
 
 		if err != nil {
@@ -209,7 +241,7 @@ func updateAttrs(h *tar.Header, path string) error {
 		}
 	}
 
-	if UpdateOwner {
+	if options.UpdateOwner {
 		err = os.Chown(path, h.Uid, h.Gid)
 
 		if err != nil {

@@ -44,23 +44,23 @@ func Unpack(file, dir string) error {
 
 	switch ext {
 	case ".tgz", ".tar.gz":
-		return tgz.Unpack(file, dir)
+		return tgz.Unpack(file, dir, tar.DefaultOptions)
 	case ".tbz2", ".tar.bz2":
-		return tbz2.Unpack(file, dir)
+		return tbz2.Unpack(file, dir, tar.DefaultOptions)
 	case ".txz", ".tar.xz":
-		return txz.Unpack(file, dir)
+		return txz.Unpack(file, dir, tar.DefaultOptions)
 	case ".tzst", ".tar.zst":
-		return tzst.Unpack(file, dir)
+		return tzst.Unpack(file, dir, tar.DefaultOptions)
 	case ".tlz4", ".tar.lz4":
-		return tlz4.Unpack(file, dir)
+		return tlz4.Unpack(file, dir, tar.DefaultOptions)
 	case ".zip":
-		return zip.Unpack(file, dir)
+		return zip.Unpack(file, dir, zip.Options{})
 	case ".tar":
-		return tar.Unpack(file, dir)
+		return tar.Unpack(file, dir, tar.DefaultOptions)
 	case ".gz":
-		return gz.Unpack(file, dir)
+		return gz.Unpack(file, dir, gz.Options{})
 	case ".bz2":
-		return bz2.Unpack(file, dir)
+		return bz2.Unpack(file, dir, bz2.Options{})
 	case ".xz":
 		return xz.Unpack(file, dir)
 	case ".zst":

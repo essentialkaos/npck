@@ -15,6 +15,8 @@ import (
 	"github.com/essentialkaos/ek/v13/fsutil"
 	"github.com/essentialkaos/ek/v13/hashutil"
 
+	"github.com/essentialkaos/npck/tar"
+
 	. "github.com/essentialkaos/check"
 )
 
@@ -37,7 +39,7 @@ func (s *TGZSuite) SetUpSuite(c *C) {
 }
 
 func (s *TGZSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.tgz", s.Dir)
+	err := Unpack("../.testdata/data.tgz", s.Dir, tar.DefaultOptions)
 
 	c.Assert(err, IsNil)
 
@@ -51,12 +53,12 @@ func (s *TGZSuite) TestUnpack(c *C) {
 }
 
 func (s *TGZSuite) TestErrors(c *C) {
-	err := Unpack("../.testdata/unknown.tgz", s.Dir)
+	err := Unpack("../.testdata/unknown.tgz", s.Dir, tar.DefaultOptions)
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.tgz", "/unknown")
+	err = Unpack("../.testdata/data.tgz", "/unknown", tar.DefaultOptions)
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Read(nil, "/unknown", tar.DefaultOptions)
 	c.Assert(err, NotNil)
 }

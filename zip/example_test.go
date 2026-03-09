@@ -16,7 +16,7 @@ import (
 
 func ExampleUnpack() {
 	file := "file.zip"
-	err := Unpack(file, "/home/bob/data")
+	err := Unpack(file, "/home/bob/data", Options{})
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
@@ -43,7 +43,7 @@ func ExampleRead() {
 		return
 	}
 
-	err = Read(fd, fi.Size(), "/home/bob/data")
+	err = Read(fd, fi.Size(), "/home/bob/data", Options{MaxReadLimit: 15 * 1024 * 1024})
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
