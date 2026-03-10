@@ -17,7 +17,7 @@ import (
 
 	"github.com/klauspost/compress/gzip"
 
-	"github.com/essentialkaos/npck/utils"
+	"github.com/essentialkaos/npck/v2/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

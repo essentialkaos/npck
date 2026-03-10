@@ -1,4 +1,4 @@
-module github.com/essentialkaos/npck
+module github.com/essentialkaos/npck/v2
 
 go 1.24.6
 

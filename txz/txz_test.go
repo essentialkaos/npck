@@ -15,7 +15,7 @@ import (
 	"github.com/essentialkaos/ek/v13/fsutil"
 	"github.com/essentialkaos/ek/v13/hashutil"
 
-	"github.com/essentialkaos/npck/tar"
+	"github.com/essentialkaos/npck/v2/tar"
 
 	. "github.com/essentialkaos/check"
 )

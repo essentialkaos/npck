@@ -17,7 +17,7 @@ import (
 
 	"github.com/pierrec/lz4/v4"
 
-	"github.com/essentialkaos/npck/utils"
+	"github.com/essentialkaos/npck/v2/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

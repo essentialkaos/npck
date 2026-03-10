@@ -17,7 +17,7 @@ import (
 
 	"github.com/klauspost/compress/zip"
 
-	"github.com/essentialkaos/npck/utils"
+	"github.com/essentialkaos/npck/v2/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -110,37 +110,41 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 			continue
 		}
 
-		zfd, err := file.Open()
+		err = extractFile(file, path, info.Mode(), limit)
 
 		if err != nil {
 			return err
 		}
-
-		defer zfd.Close()
-
-		fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
-
-		if err != nil {
-			return err
-		}
-
-		defer fd.Close()
-
-		bw := bufio.NewWriter(fd)
-		_, err = io.Copy(bw, io.LimitReader(zfd, limit))
-
-		if err != nil {
-			return err
-		}
-
-		err = bw.Flush()
-
-		if err != nil {
-			return err
-		}
-
-		fd.Close()
 	}
 
 	return nil
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+func extractFile(file *zip.File, path string, mode os.FileMode, limit int64) error {
+	zfd, err := file.Open()
+
+	if err != nil {
+		return err
+	}
+
+	defer zfd.Close()
+
+	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
+
+	if err != nil {
+		return err
+	}
+
+	defer fd.Close()
+
+	bw := bufio.NewWriter(fd)
+	_, err = io.Copy(bw, io.LimitReader(zfd, limit))
+
+	if err != nil {
+		return err
+	}
+
+	return bw.Flush()
 }
