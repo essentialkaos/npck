@@ -78,11 +78,6 @@ func Read(r io.Reader, output string) error {
 	defer fd.Close()
 
 	cr := lz4.NewReader(r)
-
-	if err != nil {
-		return err
-	}
-
 	bw := bufio.NewWriter(fd)
 	_, err = io.Copy(bw, cr)
 

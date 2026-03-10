@@ -44,7 +44,7 @@ var (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpacks file to given directory
+// Unpack unpacks archive file to given directory
 func Unpack(file, dir string, options Options) error {
 	switch {
 	case file == "":

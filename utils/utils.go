@@ -49,21 +49,22 @@ func Join(root string, elem ...string) (string, error) {
 		}
 	}
 
-	if IsExternalPath(root, result) {
+	if isExternalPath(root, result) {
 		return "", fmt.Errorf("final destination (%s) is outside root (%s)", result, root)
 	}
 
 	return result, nil
 }
 
-// IsExternalPath returns true if given path is outside of root
-func IsExternalPath(root, path string) bool {
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// isExternalPath returns true if given path is outside of root
+func isExternalPath(root, path string) bool {
 	rel, err := filepath.Rel(root, path)
 	return err != nil || strings.HasPrefix(rel, "..")
 }
 
-// ////////////////////////////////////////////////////////////////////////////////// //
-
+// isLink returns true if given object is symlink
 func isLink(path string) bool {
 	fi, err := os.Lstat(path)
 	return err == nil && fi.Mode()&os.ModeSymlink != 0

@@ -30,6 +30,7 @@ const DEFAULT_DIR_MODE os.FileMode = 0750
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// Options is reader options
 type Options struct {
 	// MaxReadLimit is the maximum read limit for decompression bomb
 	// protection (default: 1GB)
@@ -154,25 +155,17 @@ func createDir(h *tar.Header, path string, options Options) error {
 
 // createFile creates new file
 func createFile(h *tar.Header, r io.Reader, path string, options Options) error {
-	dir := filepath.Dir(path)
-	_, err := os.Stat(dir)
-
 	mode := options.DirMode
+	dir := filepath.Dir(path)
 
 	if mode == 0 {
 		mode = DEFAULT_DIR_MODE
 	}
 
+	err := os.MkdirAll(dir, mode)
+
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-
-		err = os.MkdirAll(dir, mode)
-
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, h.FileInfo().Mode())

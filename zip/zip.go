@@ -71,7 +71,7 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 	case dir == "":
 		return ErrEmptyOutput
 	case size <= 0:
-		return fmt.Errorf("invalid data size (%d < 0)", size)
+		return fmt.Errorf("invalid data size (%d ≤ 0)", size)
 	}
 
 	zr, err := zip.NewReader(r, size)
