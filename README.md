@@ -1,7 +1,7 @@
 <p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
-  <a href="https://kaos.sh/g/npck"><img src=".github/images/godoc.svg"/></a>
+  <a href="https://kaos.sh/g/npck.v2"><img src=".github/images/godoc.svg"/></a>
   <a href="https://kaos.sh/y/npck"><img src="https://kaos.sh/y/fdbafdcb2caa4516afbd5feabebce511.svg" alt="Codacy" /></a>
   <a href="https://kaos.sh/c/npck"><img src="https://kaos.sh/c/npck.svg" alt="Coverage Status" /></a>
   <a href="https://kaos.sh/w/npck/ci"><img src="https://kaos.sh/w/npck/ci.svg" alt="GitHub Actions CI Status" /></a>
@@ -32,7 +32,7 @@ package main
 
 import (
   "fmt"
-  "github.com/essentialkaos/npck"
+  "github.com/essentialkaos/npck/v2"
 )
 
 func main() {

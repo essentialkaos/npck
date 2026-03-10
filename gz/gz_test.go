@@ -2,7 +2,7 @@ package gz
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -38,7 +38,7 @@ func (s *GZSuite) SetUpSuite(c *C) {
 }
 
 func (s *GZSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.txt.gz", s.Dir)
+	err := Unpack("../.testdata/data.txt.gz", s.Dir, Options{})
 
 	c.Assert(err, IsNil)
 
@@ -49,27 +49,27 @@ func (s *GZSuite) TestUnpack(c *C) {
 }
 
 func (s *GZSuite) TestErrors(c *C) {
-	err := Unpack("", "/_unknown")
+	err := Unpack("", "/_unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.txt.gz", "")
+	err = Unpack("../.testdata/data.txt.gz", "", Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("/_unknown", s.Dir)
+	err = Unpack("/_unknown", s.Dir, Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("/_unknown", "/root")
+	err = Unpack("/_unknown", "/root", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/_unknown")
+	err = Read(nil, "/_unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "")
+	err = Read(strings.NewReader(""), "", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "/_unknown")
+	err = Read(strings.NewReader(""), "/_unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), s.Dir+"/test")
+	err = Read(strings.NewReader(""), s.Dir+"/test", Options{})
 	c.Assert(err, NotNil)
 }

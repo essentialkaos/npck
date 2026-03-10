@@ -3,7 +3,7 @@ package tar
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -17,36 +17,57 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/essentialkaos/npck/utils"
+	"github.com/essentialkaos/npck/v2/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UpdateOwner is flag for restoring owner for files and directories
-var UpdateOwner = false
+// DEFAULT_MAX_READ_LIMIT is default the maximum read limit (1GB)
+const DEFAULT_MAX_READ_LIMIT int64 = 1024 * 1024 * 1024
 
-// UpdateOwner is flag for restoring mtime and atime
-var UpdateTimes = true
+// DEFAULT_DIR_MODE is default mode for directories
+const DEFAULT_DIR_MODE os.FileMode = 0750
 
-// AllowExternalLinks is flag for protection against links to files and directories
-// outside target directory
-var AllowExternalLinks = false
+// ////////////////////////////////////////////////////////////////////////////////// //
 
-// MaxReadLimit is the maximum read limit for decompression bomb
-// protection (default: 1GB)
-var MaxReadLimit int64 = 1024 * 1024 * 1024
+// Options is reader options
+type Options struct {
+	// MaxReadLimit is the maximum read limit for decompression bomb
+	// protection (default: 1GB)
+	MaxReadLimit int64
+
+	// DirMode is mode for all created directories (default: 0750)
+	DirMode os.FileMode
+
+	// AllowExternalLinks is flag for protection against links to files and directories
+	// outside target directory
+	AllowExternalLinks bool
+
+	// UpdateTimes is flag for restoring mtime and atime
+	UpdateTimes bool
+
+	// UpdateOwner is flag for restoring owner for files and directories
+	UpdateOwner bool
+}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = fmt.Errorf("Reader can not be nil")
-	ErrEmptyOutput = fmt.Errorf("Path to output directory can not be empty")
+	ErrNilReader   = utils.ErrNilReader
+	ErrEmptyOutput = utils.ErrEmptyOutput
 )
+
+// DefaultOptions is default unpacking options
+var DefaultOptions = Options{
+	MaxReadLimit: DEFAULT_MAX_READ_LIMIT,
+	DirMode:      0750,
+	UpdateTimes:  true,
+}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpacks file to given directory
-func Unpack(file, dir string) error {
+// Unpack unpacks archive file to given directory
+func Unpack(file, dir string, options Options) error {
 	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
 
 	if err != nil {
@@ -55,12 +76,12 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), dir)
+	return Read(bufio.NewReader(fd), dir, options)
 }
 
 // Read reads compressed data using given reader and unpacks it to
 // the given directory
-func Read(r io.Reader, dir string) error {
+func Read(r io.Reader, dir string, options Options) error {
 	switch {
 	case r == nil:
 		return ErrNilReader
@@ -86,7 +107,7 @@ func Read(r io.Reader, dir string) error {
 		}
 
 		if strings.Contains(header.Name, "..") {
-			return fmt.Errorf("Path \"%s\" contains directory traversal element and cannot be used", header.Name)
+			return fmt.Errorf("path %q contains directory traversal element and cannot be used", header.Name)
 		}
 
 		path, err := utils.Join(dir, header.Name)
@@ -97,16 +118,16 @@ func Read(r io.Reader, dir string) error {
 
 		switch header.Typeflag {
 		case tar.TypeReg:
-			err = createFile(header, tr, path)
+			err = createFile(header, tr, path, options)
 		case tar.TypeDir:
-			err = createDir(header, path)
+			err = createDir(header, path, options)
 		case tar.TypeLink:
-			err = createHardlink(header, dir, path)
+			err = createHardlink(header, dir, path, options.AllowExternalLinks)
 		case tar.TypeSymlink:
-			err = createSymlink(header, dir, path)
+			err = createSymlink(header, dir, path, options.AllowExternalLinks)
 		default:
 			err = fmt.Errorf(
-				"Object %s has unsupported type (%d)",
+				"object %q has unsupported type (%d)",
 				header.Name, header.Typeflag,
 			)
 		}
@@ -122,27 +143,29 @@ func Read(r io.Reader, dir string) error {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // createDir creates new directory
-func createDir(h *tar.Header, path string) error {
+func createDir(h *tar.Header, path string, options Options) error {
 	err := os.MkdirAll(path, h.FileInfo().Mode())
 
 	if err != nil {
 		return err
 	}
 
-	return updateAttrs(h, path)
+	return updateAttrs(h, path, options)
 }
 
 // createFile creates new file
-func createFile(h *tar.Header, r io.Reader, path string) error {
+func createFile(h *tar.Header, r io.Reader, path string, options Options) error {
+	mode := options.DirMode
 	dir := filepath.Dir(path)
-	_, err := os.Stat(dir)
 
-	if os.IsNotExist(err) {
-		err := os.MkdirAll(dir, 0755)
+	if mode == 0 {
+		mode = DEFAULT_DIR_MODE
+	}
 
-		if err != nil {
-			return err
-		}
+	err := os.MkdirAll(dir, mode)
+
+	if err != nil {
+		return err
 	}
 
 	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, h.FileInfo().Mode())
@@ -151,42 +174,59 @@ func createFile(h *tar.Header, r io.Reader, path string) error {
 		return err
 	}
 
+	defer fd.Close()
+
+	limit := options.MaxReadLimit
+
+	if limit == 0 {
+		limit = DEFAULT_MAX_READ_LIMIT
+	}
+
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, io.LimitReader(r, MaxReadLimit))
+	_, err = io.Copy(bw, io.LimitReader(r, limit))
 
 	if err != nil {
 		return err
 	}
 
-	bw.Flush()
-	fd.Close()
+	err = bw.Flush()
 
-	return updateAttrs(h, path)
+	if err != nil {
+		return err
+	}
+
+	return updateAttrs(h, path, options)
 }
 
 // createSymlink creates symbolic link
-func createSymlink(h *tar.Header, dir, path string) error {
-	if !AllowExternalLinks && isExternalLink(h.Linkname, path, dir) {
-		return fmt.Errorf("Symbolic link %s points to object outside of target directory (%s)", h.Name, h.Linkname)
+func createSymlink(h *tar.Header, dir, path string, allowExternalLinks bool) error {
+	if !allowExternalLinks && isExternalLink(h.Linkname, path, dir) {
+		return fmt.Errorf("symbolic link %q points to object outside of target directory (%q)", h.Name, h.Linkname)
 	}
 
 	return os.Symlink(h.Linkname, path)
 }
 
 // createHardlink creates hard link
-func createHardlink(h *tar.Header, dir, path string) error {
-	if !AllowExternalLinks && isExternalLink(h.Linkname, path, dir) {
-		return fmt.Errorf("Hard link %s points to object outside of target directory (%s)", h.Name, h.Linkname)
+func createHardlink(h *tar.Header, dir, path string, allowExternalLinks bool) error {
+	if !allowExternalLinks && isExternalLink(h.Linkname, path, dir) {
+		return fmt.Errorf("hard link %q points to object outside of target directory (%q)", h.Name, h.Linkname)
 	}
 
-	return os.Link(h.Linkname, path)
+	linkTarget, err := utils.Join(dir, h.Linkname)
+
+	if err != nil {
+		return err
+	}
+
+	return os.Link(linkTarget, path)
 }
 
 // updateAttrs updates target attributes
-func updateAttrs(h *tar.Header, path string) error {
+func updateAttrs(h *tar.Header, path string, options Options) error {
 	var err error
 
-	if UpdateTimes {
+	if options.UpdateTimes {
 		err = os.Chtimes(path, h.AccessTime, h.ModTime)
 
 		if err != nil {
@@ -194,7 +234,7 @@ func updateAttrs(h *tar.Header, path string) error {
 		}
 	}
 
-	if UpdateOwner {
+	if options.UpdateOwner {
 		err = os.Chown(path, h.Uid, h.Gid)
 
 		if err != nil {
@@ -207,12 +247,10 @@ func updateAttrs(h *tar.Header, path string) error {
 
 // isExternalLink checks if link leads to object outside target directory
 func isExternalLink(linkPath, objPath, targetDir string) bool {
-	if filepath.IsAbs(linkPath) && !strings.HasPrefix(linkPath, targetDir) {
-		return true
+	if !filepath.IsAbs(linkPath) {
+		linkPath = filepath.Clean(filepath.Join(filepath.Dir(objPath), linkPath))
 	}
 
-	return !strings.HasPrefix(
-		filepath.Clean(filepath.Dir(objPath)+"/"+linkPath),
-		targetDir,
-	)
+	return linkPath != targetDir &&
+		!strings.HasPrefix(linkPath, targetDir+string(filepath.Separator))
 }

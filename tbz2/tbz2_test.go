@@ -2,7 +2,7 @@ package tbz2
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -14,6 +14,8 @@ import (
 
 	"github.com/essentialkaos/ek/v13/fsutil"
 	"github.com/essentialkaos/ek/v13/hashutil"
+
+	"github.com/essentialkaos/npck/v2/tar"
 
 	. "github.com/essentialkaos/check"
 )
@@ -37,7 +39,7 @@ func (s *TBZ2Suite) SetUpSuite(c *C) {
 }
 
 func (s *TBZ2Suite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.tbz2", s.Dir)
+	err := Unpack("../.testdata/data.tbz2", s.Dir, tar.DefaultOptions)
 
 	c.Assert(err, IsNil)
 
@@ -51,12 +53,12 @@ func (s *TBZ2Suite) TestUnpack(c *C) {
 }
 
 func (s *TBZ2Suite) TestErrors(c *C) {
-	err := Unpack("../.testdata/unknown.tbz2", s.Dir)
+	err := Unpack("../.testdata/unknown.tbz2", s.Dir, tar.DefaultOptions)
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.tbz2", "/unknown")
+	err = Unpack("../.testdata/data.tbz2", "/unknown", tar.DefaultOptions)
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Read(nil, "/unknown", tar.DefaultOptions)
 	c.Assert(err, NotNil)
 }

@@ -3,65 +3,64 @@ package npck
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
-	"fmt"
+	"errors"
 	"path/filepath"
 	"strings"
 
-	"github.com/essentialkaos/npck/bz2"
-	"github.com/essentialkaos/npck/gz"
-	"github.com/essentialkaos/npck/lz4"
-	"github.com/essentialkaos/npck/tar"
-	"github.com/essentialkaos/npck/tbz2"
-	"github.com/essentialkaos/npck/tgz"
-	"github.com/essentialkaos/npck/tlz4"
-	"github.com/essentialkaos/npck/txz"
-	"github.com/essentialkaos/npck/tzst"
-	"github.com/essentialkaos/npck/xz"
-	"github.com/essentialkaos/npck/zip"
-	"github.com/essentialkaos/npck/zst"
+	"github.com/essentialkaos/npck/v2/bz2"
+	"github.com/essentialkaos/npck/v2/gz"
+	"github.com/essentialkaos/npck/v2/lz4"
+	"github.com/essentialkaos/npck/v2/tar"
+	"github.com/essentialkaos/npck/v2/tbz2"
+	"github.com/essentialkaos/npck/v2/tgz"
+	"github.com/essentialkaos/npck/v2/tlz4"
+	"github.com/essentialkaos/npck/v2/txz"
+	"github.com/essentialkaos/npck/v2/tzst"
+	"github.com/essentialkaos/npck/v2/xz"
+	"github.com/essentialkaos/npck/v2/zip"
+	"github.com/essentialkaos/npck/v2/zst"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var ErrUnsupportedFormat = fmt.Errorf("Unknown or unsupported archive type")
+var ErrUnsupportedFormat = errors.New("unknown or unsupported archive type")
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpack unpacks given file
+// Unpack unpacks archive file to given directory
 func Unpack(file, dir string) error {
-	ext := filepath.Ext(file)
-	ext = strings.ToLower(ext)
+	fileLower := strings.ToLower(file)
+	ext := filepath.Ext(fileLower)
 
-	if strings.HasSuffix(file, ".tar"+ext) ||
-		strings.HasSuffix(file, ".TAR"+ext) {
+	if strings.HasSuffix(fileLower, ".tar"+ext) {
 		ext = ".tar" + ext
 	}
 
 	switch ext {
 	case ".tgz", ".tar.gz":
-		return tgz.Unpack(file, dir)
+		return tgz.Unpack(file, dir, tar.DefaultOptions)
 	case ".tbz2", ".tar.bz2":
-		return tbz2.Unpack(file, dir)
+		return tbz2.Unpack(file, dir, tar.DefaultOptions)
 	case ".txz", ".tar.xz":
-		return txz.Unpack(file, dir)
+		return txz.Unpack(file, dir, tar.DefaultOptions)
 	case ".tzst", ".tar.zst":
-		return tzst.Unpack(file, dir)
+		return tzst.Unpack(file, dir, tar.DefaultOptions)
 	case ".tlz4", ".tar.lz4":
-		return tlz4.Unpack(file, dir)
+		return tlz4.Unpack(file, dir, tar.DefaultOptions)
 	case ".zip":
-		return zip.Unpack(file, dir)
+		return zip.Unpack(file, dir, zip.Options{})
 	case ".tar":
-		return tar.Unpack(file, dir)
+		return tar.Unpack(file, dir, tar.DefaultOptions)
 	case ".gz":
-		return gz.Unpack(file, dir)
+		return gz.Unpack(file, dir, gz.Options{})
 	case ".bz2":
-		return bz2.Unpack(file, dir)
+		return bz2.Unpack(file, dir, bz2.Options{})
 	case ".xz":
 		return xz.Unpack(file, dir)
 	case ".zst":

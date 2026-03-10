@@ -3,7 +3,7 @@ package bz2
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -11,33 +11,40 @@ package bz2
 import (
 	"bufio"
 	"compress/bzip2"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/essentialkaos/npck/utils"
+	"github.com/essentialkaos/npck/v2/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// MaxReadLimit is the maximum read limit for decompression bomb
-// protection (default: 1GB)
-var MaxReadLimit int64 = 1024 * 1024 * 1024
+// DEFAULT_MAX_READ_LIMIT is default the maximum read limit (1GB)
+const DEFAULT_MAX_READ_LIMIT int64 = 1024 * 1024 * 1024
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// Options is reader options
+type Options struct {
+	// MaxReadLimit is the maximum read limit for decompression bomb
+	// protection (default: 1GB)
+	MaxReadLimit int64
+}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = fmt.Errorf("Reader can not be nil")
-	ErrEmptyInput  = fmt.Errorf("Path to input file can not be empty")
-	ErrEmptyOutput = fmt.Errorf("Path to output file can not be empty")
+	ErrNilReader   = utils.ErrNilReader
+	ErrEmptyInput  = utils.ErrEmptyInput
+	ErrEmptyOutput = utils.ErrEmptyOutput
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpacks file to given directory
-func Unpack(file, dir string) error {
+// Unpack unpacks archive file to given directory
+func Unpack(file, dir string, options Options) error {
 	switch {
 	case file == "":
 		return ErrEmptyInput
@@ -54,7 +61,7 @@ func Unpack(file, dir string) error {
 		return err
 	}
 
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	fd, err := os.Open(file)
 
 	if err != nil {
 		return err
@@ -62,12 +69,12 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), path)
+	return Read(bufio.NewReader(fd), path, options)
 }
 
 // Read reads compressed data using given reader and unpacks it to
 // the given directory
-func Read(r io.Reader, output string) error {
+func Read(r io.Reader, output string, options Options) error {
 	switch {
 	case r == nil:
 		return ErrNilReader
@@ -81,11 +88,20 @@ func Read(r io.Reader, output string) error {
 		return err
 	}
 
+	defer fd.Close()
+
+	limit := options.MaxReadLimit
+
+	if limit == 0 {
+		limit = DEFAULT_MAX_READ_LIMIT
+	}
+
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, io.LimitReader(bzip2.NewReader(r), MaxReadLimit))
+	_, err = io.Copy(bw, io.LimitReader(bzip2.NewReader(r), limit))
 
-	bw.Flush()
-	fd.Close()
+	if err != nil {
+		return err
+	}
 
-	return err
+	return bw.Flush()
 }

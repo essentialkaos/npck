@@ -2,7 +2,7 @@ package txz
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -14,6 +14,8 @@ import (
 
 	"github.com/essentialkaos/ek/v13/fsutil"
 	"github.com/essentialkaos/ek/v13/hashutil"
+
+	"github.com/essentialkaos/npck/v2/tar"
 
 	. "github.com/essentialkaos/check"
 )
@@ -37,7 +39,7 @@ func (s *TXZSuite) SetUpSuite(c *C) {
 }
 
 func (s *TXZSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.txz", s.Dir)
+	err := Unpack("../.testdata/data.txz", s.Dir, tar.DefaultOptions)
 
 	c.Assert(err, IsNil)
 
@@ -51,12 +53,12 @@ func (s *TXZSuite) TestUnpack(c *C) {
 }
 
 func (s *TXZSuite) TestErrors(c *C) {
-	err := Unpack("../.testdata/unknown.txz", s.Dir)
+	err := Unpack("../.testdata/unknown.txz", s.Dir, tar.DefaultOptions)
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.txz", "/unknown")
+	err = Unpack("../.testdata/data.txz", "/unknown", tar.DefaultOptions)
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Read(nil, "/unknown", tar.DefaultOptions)
 	c.Assert(err, NotNil)
 }

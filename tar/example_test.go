@@ -2,7 +2,7 @@ package tar
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -16,7 +16,7 @@ import (
 
 func ExampleUnpack() {
 	file := "file.tar"
-	err := Unpack(file, "/home/bob/data")
+	err := Unpack(file, "/home/bob/data", DefaultOptions)
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
@@ -28,14 +28,14 @@ func ExampleUnpack() {
 
 func ExampleRead() {
 	file := "file.tar"
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	fd, err := os.Open(file)
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
 		return
 	}
 
-	err = Read(fd, "/home/bob/data")
+	err = Read(fd, "/home/bob/data", DefaultOptions)
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)

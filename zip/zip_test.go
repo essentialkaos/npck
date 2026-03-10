@@ -2,7 +2,7 @@ package zip
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -38,7 +38,7 @@ func (s *ZipSuite) SetUpSuite(c *C) {
 }
 
 func (s *ZipSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.zip", s.Dir)
+	err := Unpack("../.testdata/data.zip", s.Dir, Options{})
 
 	c.Assert(err, IsNil)
 
@@ -52,21 +52,24 @@ func (s *ZipSuite) TestUnpack(c *C) {
 }
 
 func (s *ZipSuite) TestErrors(c *C) {
-	err := Unpack("../.testdata/unknown.zip", s.Dir)
+	err := Unpack("../.testdata/unknown.zip", s.Dir, Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.zip", "/unknown")
+	err = Unpack("../.testdata/data.zip", "/unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Read(nil, 4096, "/unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/unknown")
+	err = Read(nil, 4096, "/unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "")
+	err = Read(strings.NewReader(""), 4096, "", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), s.Dir)
+	err = Read(strings.NewReader(""), 4096, s.Dir, Options{})
+	c.Assert(err, NotNil)
+
+	err = Read(strings.NewReader(""), -1, s.Dir, Options{})
 	c.Assert(err, NotNil)
 }

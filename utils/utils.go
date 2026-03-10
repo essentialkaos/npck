@@ -3,16 +3,25 @@ package utils
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
+)
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+var (
+	ErrNilReader   = errors.New("reader is nil")
+	ErrEmptyInput  = errors.New("path to input file is empty")
+	ErrEmptyOutput = errors.New("path to output file is empty")
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -35,13 +44,13 @@ func Join(root string, elem ...string) (string, error) {
 			result, err = filepath.EvalSymlinks(result)
 
 			if err != nil {
-				return "", fmt.Errorf("Can't eval symlinks: %w", err)
+				return "", fmt.Errorf("can't eval symlinks: %w", err)
 			}
 		}
 	}
 
-	if !strings.HasPrefix(result, root) {
-		return "", fmt.Errorf("Final destination (%s) is outside root (%s)", result, root)
+	if isExternalPath(root, result) {
+		return "", fmt.Errorf("final destination (%s) is outside root (%s)", result, root)
 	}
 
 	return result, nil
@@ -49,9 +58,14 @@ func Join(root string, elem ...string) (string, error) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-func isLink(path string) bool {
-	var buf = make([]byte, 1)
-	_, err := syscall.Readlink(path, buf)
+// isExternalPath returns true if given path is outside of root
+func isExternalPath(root, path string) bool {
+	rel, err := filepath.Rel(root, path)
+	return err != nil || strings.HasPrefix(rel, "..")
+}
 
-	return err == nil
+// isLink returns true if given object is symlink
+func isLink(path string) bool {
+	fi, err := os.Lstat(path)
+	return err == nil && fi.Mode()&os.ModeSymlink != 0
 }

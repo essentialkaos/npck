@@ -2,7 +2,7 @@ package tzst
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -10,13 +10,15 @@ package tzst
 import (
 	"fmt"
 	"os"
+
+	"github.com/essentialkaos/npck/v2/tar"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 func ExampleUnpack() {
 	file := "file.tzst"
-	err := Unpack(file, "/home/bob/data")
+	err := Unpack(file, "/home/bob/data", tar.DefaultOptions)
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
@@ -28,14 +30,14 @@ func ExampleUnpack() {
 
 func ExampleRead() {
 	file := "file.tzst"
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	fd, err := os.Open(file)
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
 		return
 	}
 
-	err = Read(fd, "/home/bob/data")
+	err = Read(fd, "/home/bob/data", tar.DefaultOptions)
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)

@@ -3,14 +3,13 @@ package zst
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -18,20 +17,20 @@ import (
 
 	"github.com/klauspost/compress/zstd"
 
-	"github.com/essentialkaos/npck/utils"
+	"github.com/essentialkaos/npck/v2/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var (
-	ErrNilReader   = fmt.Errorf("Reader can not be nil")
-	ErrEmptyInput  = fmt.Errorf("Path to input file can not be empty")
-	ErrEmptyOutput = fmt.Errorf("Path to output file can not be empty")
+	ErrNilReader   = utils.ErrNilReader
+	ErrEmptyInput  = utils.ErrEmptyInput
+	ErrEmptyOutput = utils.ErrEmptyOutput
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Unpacks file to given directory
+// Unpack unpacks archive file to given directory
 func Unpack(file, dir string) error {
 	switch {
 	case file == "":
@@ -49,7 +48,7 @@ func Unpack(file, dir string) error {
 		return err
 	}
 
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	fd, err := os.Open(file)
 
 	if err != nil {
 		return err
@@ -76,6 +75,8 @@ func Read(r io.Reader, output string) error {
 		return err
 	}
 
+	defer fd.Close()
+
 	cr, err := zstd.NewReader(r)
 
 	if err != nil {
@@ -85,8 +86,9 @@ func Read(r io.Reader, output string) error {
 	bw := bufio.NewWriter(fd)
 	_, err = io.Copy(bw, cr)
 
-	bw.Flush()
-	fd.Close()
+	if err != nil {
+		return err
+	}
 
-	return err
+	return bw.Flush()
 }
