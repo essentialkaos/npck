@@ -2,10 +2,10 @@
 
 <p align="center">
   <a href="https://kaos.sh/g/npck.v2"><img src=".github/images/godoc.svg"/></a>
-  <a href="https://kaos.sh/y/npck"><img src="https://kaos.sh/y/fdbafdcb2caa4516afbd5feabebce511.svg" alt="Codacy" /></a>
-  <a href="https://kaos.sh/c/npck"><img src="https://kaos.sh/c/npck.svg" alt="Coverage Status" /></a>
-  <a href="https://kaos.sh/w/npck/ci"><img src="https://kaos.sh/w/npck/ci.svg" alt="GitHub Actions CI Status" /></a>
-  <a href="https://kaos.sh/w/npck/codeql"><img src="https://kaos.sh/w/npck/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
+  <a href="https://kaos.sh/y/npck"><img src="https://app.codacy.com/project/badge/Grade/fdbafdcb2caa4516afbd5feabebce511" alt="Codacy" /></a>
+  <a href="https://kaos.sh/c/npck"><img src="https://coveralls.io/repos/github/essentialkaos/npck/badge.svg" alt="Coverage Status" /></a>
+  <a href="https://kaos.sh/w/npck/ci"><img src="https://github.com/essentialkaos/npck/actions/workflows/ci.yml/badge.svg" alt="GitHub Actions CI Status" /></a>
+  <a href="https://kaos.sh/w/npck/codeql"><img src="https://github.com/essentialkaos/npck/actions/workflows/codeql.yml/badge.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
 
@@ -52,8 +52,8 @@ func main() {
 
 | Branch | Status |
 |--------|--------|
-| `master` | [![CI](https://kaos.sh/w/npck/ci.svg?branch=master)](https://kaos.sh/w/npck/ci?query=branch:master) |
-| `develop` | [![CI](https://kaos.sh/w/npck/ci.svg?branch=develop)](https://kaos.sh/w/npck/ci?query=branch:develop) |
+| `master` | [![CI](https://github.com/essentialkaos/npck/actions/workflows/ci.yml/badge.svg?branch=master)](https://kaos.sh/w/npck/ci?query=branch:master) |
+| `develop` | [![CI](https://github.com/essentialkaos/npck/actions/workflows/ci.yml/badge.svg?branch=develop)](https://kaos.sh/w/npck/ci?query=branch:develop) |
 
 ### Contributing
 
