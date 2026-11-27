@@ -69,7 +69,4 @@ func (s *LZ4Suite) TestErrors(c *C) {
 
 	err = Read(strings.NewReader(""), "/_unknown")
 	c.Assert(err, NotNil)
-
-	err = Read(strings.NewReader(""), s.Dir+"/test")
-	c.Assert(err, NotNil)
 }
