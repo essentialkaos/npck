@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/essentialkaos/check v1.4.1
-	github.com/essentialkaos/ek/v14 v14.5.1
+	github.com/essentialkaos/ek/v14 v14.6.3
 	github.com/klauspost/compress v1.20.5
 	github.com/pierrec/lz4/v4 v4.1.34
 	github.com/ulikunitz/xz v0.5.17
