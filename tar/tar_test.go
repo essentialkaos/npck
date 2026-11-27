@@ -9,8 +9,10 @@ package tar
 
 import (
 	"archive/tar"
+
 	"bytes"
 	"crypto/sha256"
+	"github.com/essentialkaos/npck/v3/utils"
 	"os"
 	"strings"
 	"testing"
@@ -294,4 +296,36 @@ func makeTar(c *C, headers ...*tar.Header) []byte {
 	c.Assert(tw.Close(), IsNil)
 
 	return buf.Bytes()
+}
+
+func (s *TarSuite) TestReadLimit(c *C) {
+	// 4 bytes of decompressed data (TypeRegA + payload)
+	data := makeTar(c,
+		&tar.Header{Name: "file.txt", Typeflag: tar.TypeReg, Mode: 0644, Size: 5},
+	)
+
+	err := Read(bytes.NewReader(data), c.MkDir(), Options{MaxReadLimit: 3})
+	c.Assert(err, Equals, utils.ErrLimitExceeded)
+
+	err = Read(bytes.NewReader(data), c.MkDir(), Options{MaxReadLimit: 5})
+	c.Assert(err, IsNil)
+
+	err = Read(bytes.NewReader(data), c.MkDir(), Options{MaxTotalSize: 3})
+	c.Assert(err, ErrorMatches, "archive total size is bigger than .*")
+}
+
+func (s *TarSuite) TestMaxTotalSizeDefault(c *C) {
+	// DefaultOptions must enforce the total cap out of the box
+	c.Assert(DefaultOptions.MaxTotalSize, Equals, int64(100*1024*1024*1024))
+
+	data := makeTar(c,
+		&tar.Header{Name: "file.txt", Typeflag: tar.TypeReg, Mode: 0644, Size: 5},
+		&tar.Header{Name: "file2.txt", Typeflag: tar.TypeReg, Mode: 0644, Size: 5},
+	)
+
+	err := Read(bytes.NewReader(data), c.MkDir(), DefaultOptions)
+	c.Assert(err, IsNil)
+
+	err = Unpack("../.testdata/data.tar", c.MkDir(), DefaultOptions)
+	c.Assert(err, IsNil)
 }

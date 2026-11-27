@@ -8,7 +8,9 @@ package gz
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
+	"bufio"
 	"crypto/sha256"
+	"github.com/essentialkaos/npck/v3/utils"
 	"os"
 	"strings"
 	"testing"
@@ -88,4 +90,12 @@ func (s *GZSuite) TestSymlinkEscape(c *C) {
 	victim, err := os.ReadFile(base + "/victim.txt")
 	c.Assert(err, IsNil)
 	c.Assert(string(victim), Equals, "original")
+}
+
+func (s *GZSuite) TestReadLimit(c *C) {
+	fd, err := os.Open("../.testdata/data.txt.gz")
+	c.Assert(err, IsNil)
+
+	err = Read(bufio.NewReader(fd), c.MkDir()+"/data.txt", Options{MaxReadLimit: 3})
+	c.Assert(err, Equals, utils.ErrLimitExceeded)
 }

@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/essentialkaos/npck/v2/utils"
+	"github.com/essentialkaos/npck/v3/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -36,11 +36,19 @@ const MAX_LINK_DEPTH = 255
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// DEFAULT_MAX_ARCHIVE_SIZE is default the maximum total size of all extracted
+// files (100GB)
+const DEFAULT_MAX_ARCHIVE_SIZE int64 = 100 * 1024 * 1024 * 1024
+
 // Options is reader options
 type Options struct {
 	// MaxReadLimit is the maximum read limit for decompression bomb
 	// protection (default: 1GB)
 	MaxReadLimit int64
+
+	// MaxTotalSize is the maximum total size of all extracted files
+	// (default: 100GB)
+	MaxTotalSize int64
 
 	// DirMode is mode for all created directories (default: 0750)
 	DirMode os.FileMode
@@ -66,6 +74,7 @@ var (
 // DefaultOptions is default unpacking options
 var DefaultOptions = Options{
 	MaxReadLimit: DEFAULT_MAX_READ_LIMIT,
+	MaxTotalSize: DEFAULT_MAX_ARCHIVE_SIZE,
 	DirMode:      0750,
 	UpdateTimes:  true,
 }
@@ -109,7 +118,12 @@ func Read(r io.Reader, dir string, options Options) error {
 
 	defer root.Close()
 
+	if options.MaxTotalSize == 0 {
+		options.MaxTotalSize = DEFAULT_MAX_ARCHIVE_SIZE
+	}
+
 	tr := tar.NewReader(r)
+	total := int64(0)
 
 	for {
 		header, err := tr.Next()
@@ -125,6 +139,12 @@ func Read(r io.Reader, dir string, options Options) error {
 		if err != nil {
 			return err
 		}
+
+		if utils.IsOverLimit(header.Size, options.MaxTotalSize, total) {
+			return fmt.Errorf("archive total size is bigger than %d bytes", options.MaxTotalSize)
+		}
+
+		total += header.Size
 
 		switch header.Typeflag {
 		case tar.TypeReg:
@@ -148,6 +168,15 @@ func Read(r io.Reader, dir string, options Options) error {
 	}
 
 	return nil
+}
+
+// limit returns per-file and total limits from given options
+func limit(options Options) int64 {
+	if options.MaxReadLimit == 0 {
+		return DEFAULT_MAX_READ_LIMIT
+	}
+
+	return options.MaxReadLimit
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -179,14 +208,14 @@ func createFile(root *os.Root, h *tar.Header, r io.Reader, path string, options 
 
 	defer fd.Close()
 
-	limit := options.MaxReadLimit
+	bw := bufio.NewWriter(fd)
+	err = utils.CopyLimited(bw, r, limit(options))
 
-	if limit == 0 {
-		limit = DEFAULT_MAX_READ_LIMIT
+	if err != nil {
+		return err
 	}
 
-	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, io.LimitReader(r, limit))
+	err = utils.IsLimitExceeded(r, limit(options))
 
 	if err != nil {
 		return err

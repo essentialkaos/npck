@@ -11,6 +11,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -18,6 +19,9 @@ import (
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// ErrLimitExceeded is returned when data exceeds maximum read limit
+var ErrLimitExceeded = errors.New("data exceeds maximum read limit")
 
 var (
 	ErrNilReader   = errors.New("reader is nil")
@@ -67,6 +71,39 @@ func CreateFile(dir, name string, perm os.FileMode) (*os.File, error) {
 	defer root.Close()
 
 	return root.OpenFile(name, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, perm)
+}
+
+// CopyLimited copies up to limit bytes of data from reader to writer.
+// Use IsLimitExceeded to check if there is more data than allowed by limit.
+func CopyLimited(w io.Writer, r io.Reader, limit int64) error {
+	_, err := io.Copy(w, io.LimitReader(r, limit))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// IsLimitExceeded checks if reader has more data than given limit
+func IsLimitExceeded(r io.Reader, limit int64) error {
+	buf := make([]byte, 1)
+
+	_, err := io.ReadFull(io.LimitReader(r, 1), buf)
+
+	if err == io.EOF {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	return ErrLimitExceeded
+}
+
+// IsOverLimit checks if given size can be read with given limit and
+// already processed number of bytes
+func IsOverLimit(size, limit, total int64) bool {
+	return limit > 0 && total+size > limit
 }
 
 // Join joins all elements of path, makes lexical processing, and evaluating all symlinks.

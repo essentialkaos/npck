@@ -32,7 +32,7 @@ package main
 
 import (
   "fmt"
-  "github.com/essentialkaos/npck/v2"
+  "github.com/essentialkaos/npck/v3"
 )
 
 func main() {

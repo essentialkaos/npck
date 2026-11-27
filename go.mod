@@ -1,4 +1,4 @@
-module github.com/essentialkaos/npck/v2
+module github.com/essentialkaos/npck/v3
 
 go 1.26.0
 

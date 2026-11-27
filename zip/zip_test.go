@@ -86,3 +86,11 @@ func (s *ZipSuite) TestSymlinkEscape(c *C) {
 	c.Assert(err, NotNil)
 	c.Assert(fsutil.IsExist(base+"/victim/payload.txt"), Equals, false)
 }
+
+func (s *ZipSuite) TestReadLimit(c *C) {
+	err := Unpack("../.testdata/data.zip", c.MkDir(), Options{MaxTotalSize: 3})
+	c.Assert(err, ErrorMatches, "archive total size is bigger than .*")
+
+	err = Read(nil, -1, "", Options{})
+	c.Assert(err, NotNil)
+}

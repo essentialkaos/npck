@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/essentialkaos/npck/v2/tar"
+	"github.com/essentialkaos/npck/v3/tar"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

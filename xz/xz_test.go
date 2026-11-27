@@ -16,6 +16,8 @@ import (
 	"github.com/essentialkaos/ek/v14/fsutil"
 	"github.com/essentialkaos/ek/v14/hashutil"
 
+	"github.com/essentialkaos/npck/v3/utils"
+
 	. "github.com/essentialkaos/check"
 )
 
@@ -38,7 +40,7 @@ func (s *XZSuite) SetUpSuite(c *C) {
 }
 
 func (s *XZSuite) TestUnpack(c *C) {
-	err := Unpack("../.testdata/data.txt.xz", s.Dir)
+	err := Unpack("../.testdata/data.txt.xz", s.Dir, Options{})
 
 	c.Assert(err, IsNil)
 
@@ -49,27 +51,32 @@ func (s *XZSuite) TestUnpack(c *C) {
 }
 
 func (s *XZSuite) TestErrors(c *C) {
-	err := Unpack("", "/_unknown")
+	err := Unpack("", "/_unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("../.testdata/data.txt.xz", "")
+	err = Unpack("../.testdata/data.txt.xz", "", Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("/_unknown", s.Dir)
+	err = Unpack("/_unknown", s.Dir, Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(nil, "/_unknown")
+	err = Read(nil, "/_unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Unpack("/_unknown", "/root")
+	err = Unpack("/_unknown", "/root", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "")
+	err = Read(strings.NewReader(""), "", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), "/_unknown")
+	err = Read(strings.NewReader(""), "/_unknown", Options{})
 	c.Assert(err, NotNil)
 
-	err = Read(strings.NewReader(""), s.Dir+"/test")
+	err = Read(strings.NewReader(""), s.Dir+"/test", Options{})
 	c.Assert(err, NotNil)
+}
+
+func (s *XZSuite) TestReadLimit(c *C) {
+	err := Unpack("../.testdata/data.txt.xz", c.MkDir(), Options{MaxReadLimit: 3})
+	c.Assert(err, Equals, utils.ErrLimitExceeded)
 }

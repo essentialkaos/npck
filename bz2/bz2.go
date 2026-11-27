@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/essentialkaos/npck/v2/utils"
+	"github.com/essentialkaos/npck/v3/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -106,7 +106,15 @@ func read(r io.Reader, fd *os.File, options Options) error {
 	}
 
 	bw := bufio.NewWriter(fd)
-	_, err := io.Copy(bw, io.LimitReader(bzip2.NewReader(r), limit))
+	cr := bzip2.NewReader(r)
+
+	err := utils.CopyLimited(bw, cr, limit)
+
+	if err != nil {
+		return err
+	}
+
+	err = utils.IsLimitExceeded(cr, limit)
 
 	if err != nil {
 		return err
