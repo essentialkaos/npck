@@ -17,7 +17,7 @@ import (
 
 	"github.com/klauspost/compress/gzip"
 
-	"github.com/essentialkaos/npck/v2/utils"
+	"github.com/essentialkaos/npck/v3/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -56,12 +56,6 @@ func Unpack(file, dir string, options Options) error {
 	output := strings.TrimSuffix(filepath.Base(file), ".gz")
 	output = strings.TrimSuffix(output, ".GZ")
 
-	path, err := utils.Join(dir, output)
-
-	if err != nil {
-		return err
-	}
-
 	fd, err := os.Open(file)
 
 	if err != nil {
@@ -70,7 +64,15 @@ func Unpack(file, dir string, options Options) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), path, options)
+	ofd, err := utils.CreateFile(dir, output, 0640)
+
+	if err != nil {
+		return err
+	}
+
+	defer ofd.Close()
+
+	return read(bufio.NewReader(fd), ofd, options)
 }
 
 // Read reads compressed data using given reader and unpacks it to
@@ -91,6 +93,13 @@ func Read(r io.Reader, output string, options Options) error {
 
 	defer fd.Close()
 
+	return read(r, fd, options)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// read decompresses data from given reader and writes it to given file
+func read(r io.Reader, fd *os.File, options Options) error {
 	cr, err := gzip.NewReader(r)
 
 	if err != nil {
@@ -106,7 +115,14 @@ func Read(r io.Reader, output string, options Options) error {
 	}
 
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, io.LimitReader(cr, limit))
+
+	err = utils.CopyLimited(bw, cr, limit)
+
+	if err != nil {
+		return err
+	}
+
+	err = utils.IsLimitExceeded(cr, limit)
 
 	if err != nil {
 		return err

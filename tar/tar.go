@@ -11,13 +11,15 @@ package tar
 import (
 	"archive/tar"
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/essentialkaos/npck/v2/utils"
+	"github.com/essentialkaos/npck/v3/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -28,7 +30,15 @@ const DEFAULT_MAX_READ_LIMIT int64 = 1024 * 1024 * 1024
 // DEFAULT_DIR_MODE is default mode for directories
 const DEFAULT_DIR_MODE os.FileMode = 0750
 
+// MAX_LINK_DEPTH is the maximum number of symbolic links followed while checking
+// symbolic link target
+const MAX_LINK_DEPTH = 255
+
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// DEFAULT_MAX_ARCHIVE_SIZE is default the maximum total size of all extracted
+// files (100GB)
+const DEFAULT_MAX_ARCHIVE_SIZE int64 = 100 * 1024 * 1024 * 1024
 
 // Options is reader options
 type Options struct {
@@ -36,11 +46,15 @@ type Options struct {
 	// protection (default: 1GB)
 	MaxReadLimit int64
 
+	// MaxTotalSize is the maximum total size of all extracted files
+	// (default: 100GB)
+	MaxTotalSize int64
+
 	// DirMode is mode for all created directories (default: 0750)
 	DirMode os.FileMode
 
-	// AllowExternalLinks is flag for protection against links to files and directories
-	// outside target directory
+	// AllowExternalLinks is flag for allowing symbolic links to files and directories
+	// outside target directory. Hard links are always confined to target directory.
 	AllowExternalLinks bool
 
 	// UpdateTimes is flag for restoring mtime and atime
@@ -60,6 +74,7 @@ var (
 // DefaultOptions is default unpacking options
 var DefaultOptions = Options{
 	MaxReadLimit: DEFAULT_MAX_READ_LIMIT,
+	MaxTotalSize: DEFAULT_MAX_ARCHIVE_SIZE,
 	DirMode:      0750,
 	UpdateTimes:  true,
 }
@@ -89,13 +104,26 @@ func Read(r io.Reader, dir string, options Options) error {
 		return ErrEmptyOutput
 	}
 
-	_, err := os.Stat(dir)
+	rootPath, err := realPath(dir)
 
 	if err != nil {
 		return err
 	}
 
+	root, err := os.OpenRoot(rootPath)
+
+	if err != nil {
+		return err
+	}
+
+	defer root.Close()
+
+	if options.MaxTotalSize == 0 {
+		options.MaxTotalSize = DEFAULT_MAX_ARCHIVE_SIZE
+	}
+
 	tr := tar.NewReader(r)
+	total := int64(0)
 
 	for {
 		header, err := tr.Next()
@@ -106,25 +134,27 @@ func Read(r io.Reader, dir string, options Options) error {
 			return err
 		}
 
-		if strings.Contains(header.Name, "..") {
-			return fmt.Errorf("path %q contains directory traversal element and cannot be used", header.Name)
-		}
-
-		path, err := utils.Join(dir, header.Name)
+		path, err := utils.LocalPath(header.Name)
 
 		if err != nil {
 			return err
 		}
 
+		if utils.IsOverLimit(header.Size, options.MaxTotalSize, total) {
+			return fmt.Errorf("archive total size is bigger than %d bytes", options.MaxTotalSize)
+		}
+
+		total += header.Size
+
 		switch header.Typeflag {
 		case tar.TypeReg:
-			err = createFile(header, tr, path, options)
+			err = createFile(root, header, tr, path, options)
 		case tar.TypeDir:
-			err = createDir(header, path, options)
+			err = createDir(root, header, path, options)
 		case tar.TypeLink:
-			err = createHardlink(header, dir, path, options.AllowExternalLinks)
+			err = createHardlink(root, rootPath, header, path, options)
 		case tar.TypeSymlink:
-			err = createSymlink(header, dir, path, options.AllowExternalLinks)
+			err = createSymlink(root, rootPath, header, path, options)
 		default:
 			err = fmt.Errorf(
 				"object %q has unsupported type (%d)",
@@ -140,35 +170,37 @@ func Read(r io.Reader, dir string, options Options) error {
 	return nil
 }
 
+// limit returns per-file and total limits from given options
+func limit(options Options) int64 {
+	if options.MaxReadLimit == 0 {
+		return DEFAULT_MAX_READ_LIMIT
+	}
+
+	return options.MaxReadLimit
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // createDir creates new directory
-func createDir(h *tar.Header, path string, options Options) error {
-	err := os.MkdirAll(path, h.FileInfo().Mode())
+func createDir(root *os.Root, h *tar.Header, path string, options Options) error {
+	err := root.MkdirAll(path, utils.DirMode(h.FileInfo().Mode()))
 
 	if err != nil {
 		return err
 	}
 
-	return updateAttrs(h, path, options)
+	return updateAttrs(root, h, path, options)
 }
 
 // createFile creates new file
-func createFile(h *tar.Header, r io.Reader, path string, options Options) error {
-	mode := options.DirMode
-	dir := filepath.Dir(path)
-
-	if mode == 0 {
-		mode = DEFAULT_DIR_MODE
-	}
-
-	err := os.MkdirAll(dir, mode)
+func createFile(root *os.Root, h *tar.Header, r io.Reader, path string, options Options) error {
+	err := createParentDir(root, path, options)
 
 	if err != nil {
 		return err
 	}
 
-	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, h.FileInfo().Mode())
+	fd, err := root.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, h.FileInfo().Mode())
 
 	if err != nil {
 		return err
@@ -176,14 +208,14 @@ func createFile(h *tar.Header, r io.Reader, path string, options Options) error 
 
 	defer fd.Close()
 
-	limit := options.MaxReadLimit
+	bw := bufio.NewWriter(fd)
+	err = utils.CopyLimited(bw, r, limit(options))
 
-	if limit == 0 {
-		limit = DEFAULT_MAX_READ_LIMIT
+	if err != nil {
+		return err
 	}
 
-	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, io.LimitReader(r, limit))
+	err = utils.IsLimitExceeded(r, limit(options))
 
 	if err != nil {
 		return err
@@ -195,39 +227,92 @@ func createFile(h *tar.Header, r io.Reader, path string, options Options) error 
 		return err
 	}
 
-	return updateAttrs(h, path, options)
+	return updateAttrs(root, h, path, options)
 }
 
 // createSymlink creates symbolic link
-func createSymlink(h *tar.Header, dir, path string, allowExternalLinks bool) error {
-	if !allowExternalLinks && isExternalLink(h.Linkname, path, dir) {
-		return fmt.Errorf("symbolic link %q points to object outside of target directory (%q)", h.Name, h.Linkname)
-	}
-
-	return os.Symlink(h.Linkname, path)
-}
-
-// createHardlink creates hard link
-func createHardlink(h *tar.Header, dir, path string, allowExternalLinks bool) error {
-	if !allowExternalLinks && isExternalLink(h.Linkname, path, dir) {
-		return fmt.Errorf("hard link %q points to object outside of target directory (%q)", h.Name, h.Linkname)
-	}
-
-	linkTarget, err := utils.Join(dir, h.Linkname)
+func createSymlink(
+	root *os.Root, rootPath string, h *tar.Header,
+	path string, options Options,
+) error {
+	err := createParentDir(root, path, options)
 
 	if err != nil {
 		return err
 	}
 
-	return os.Link(linkTarget, path)
+	if !options.AllowExternalLinks && isExternalLink(root, rootPath, path, h.Linkname) {
+		return fmt.Errorf(
+			"symbolic link %q points to object outside of target directory (%q)",
+			h.Name, h.Linkname,
+		)
+	}
+
+	return root.Symlink(h.Linkname, path)
+}
+
+// createHardlink creates hard link
+func createHardlink(
+	root *os.Root, rootPath string, h *tar.Header,
+	path string, options Options,
+) error {
+	target, err := utils.LocalPath(h.Linkname)
+
+	if err != nil {
+		return err
+	}
+
+	err = createParentDir(root, path, options)
+
+	if err != nil {
+		return err
+	}
+
+	fi, err := root.Lstat(target)
+
+	if err != nil {
+		return err
+	}
+
+	// Hard link to symbolic link is a copy of this link at the new location, so
+	// its target must be checked again relative to the new location
+	if fi.Mode()&fs.ModeSymlink != 0 && !options.AllowExternalLinks {
+		linkTarget, err := root.Readlink(target)
+
+		if err != nil {
+			return err
+		}
+
+		if isExternalLink(root, rootPath, path, linkTarget) {
+			return fmt.Errorf(
+				"hard link %q points to symbolic link leading outside of target directory (%q)",
+				h.Name, linkTarget,
+			)
+		}
+	}
+
+	// Both paths are resolved inside the root, so hard link to object outside
+	// of target directory can't be created
+	return root.Link(target, path)
+}
+
+// createParentDir creates parent directory for given path
+func createParentDir(root *os.Root, path string, options Options) error {
+	mode := options.DirMode
+
+	if mode == 0 {
+		mode = DEFAULT_DIR_MODE
+	}
+
+	return root.MkdirAll(filepath.Dir(path), mode)
 }
 
 // updateAttrs updates target attributes
-func updateAttrs(h *tar.Header, path string, options Options) error {
+func updateAttrs(root *os.Root, h *tar.Header, path string, options Options) error {
 	var err error
 
 	if options.UpdateTimes {
-		err = os.Chtimes(path, h.AccessTime, h.ModTime)
+		err = root.Chtimes(path, h.AccessTime, h.ModTime)
 
 		if err != nil {
 			return err
@@ -235,7 +320,7 @@ func updateAttrs(h *tar.Header, path string, options Options) error {
 	}
 
 	if options.UpdateOwner {
-		err = os.Chown(path, h.Uid, h.Gid)
+		err = root.Chown(path, h.Uid, h.Gid)
 
 		if err != nil {
 			return err
@@ -245,12 +330,120 @@ func updateAttrs(h *tar.Header, path string, options Options) error {
 	return nil
 }
 
-// isExternalLink checks if link leads to object outside target directory
-func isExternalLink(linkPath, objPath, targetDir string) bool {
-	if !filepath.IsAbs(linkPath) {
-		linkPath = filepath.Clean(filepath.Join(filepath.Dir(objPath), linkPath))
+// realPath returns absolute path with all symbolic links resolved
+func realPath(path string) (string, error) {
+	path, err := filepath.Abs(path)
+
+	if err != nil {
+		return "", err
 	}
 
-	return linkPath != targetDir &&
-		!strings.HasPrefix(linkPath, targetDir+string(filepath.Separator))
+	return filepath.EvalSymlinks(path)
+}
+
+// isExternalLink checks if symbolic link with given target created at given path
+// (relative to root) leads to object outside of root
+func isExternalLink(root *os.Root, rootPath, path, target string) bool {
+	if filepath.IsAbs(target) {
+		rel, err := filepath.Rel(rootPath, filepath.Clean(target))
+
+		if err != nil || !filepath.IsLocal(rel) {
+			return true
+		}
+
+		return !isLocalTarget(root, rootPath, splitPath(rel))
+	}
+
+	return !isLocalTarget(
+		root, rootPath,
+		append(splitPath(filepath.Dir(path)), splitPath(target)...),
+	)
+}
+
+// isLocalTarget walks over given path elements (relative to root) using the current
+// state of the file system and checks that resolved path is inside of the root.
+// All symbolic links found during the walk are followed. Path elements which don't
+// exist yet are processed lexically, but going up ("..") from such element is
+// forbidden, because the element may be created later as a symbolic link.
+func isLocalTarget(root *os.Root, rootPath string, elems []string) bool {
+	var stack []string
+
+	isMissing := false
+	links := 0
+
+	for len(elems) > 0 {
+		elem := elems[0]
+		elems = elems[1:]
+
+		if elem == ".." {
+			if isMissing || len(stack) == 0 {
+				return false
+			}
+
+			stack = stack[:len(stack)-1]
+			continue
+		}
+
+		stack = append(stack, elem)
+
+		if isMissing {
+			continue
+		}
+
+		cur := filepath.Join(stack...)
+		fi, err := root.Lstat(cur)
+
+		switch {
+		case errors.Is(err, fs.ErrNotExist):
+			isMissing = true
+
+		case err != nil:
+			return false
+
+		case fi.Mode()&fs.ModeSymlink != 0:
+			links++
+
+			if links > MAX_LINK_DEPTH {
+				return false
+			}
+
+			target, err := root.Readlink(cur)
+
+			if err != nil {
+				return false
+			}
+
+			stack = stack[:len(stack)-1]
+
+			if filepath.IsAbs(target) {
+				rel, err := filepath.Rel(rootPath, filepath.Clean(target))
+
+				if err != nil || !filepath.IsLocal(rel) {
+					return false
+				}
+
+				stack, target = nil, rel
+			}
+
+			elems = append(splitPath(target), elems...)
+
+		case !fi.IsDir() && len(elems) > 0:
+			return false
+		}
+	}
+
+	return true
+}
+
+// splitPath splits path to elements omitting empty and "." elements
+func splitPath(path string) []string {
+	var result []string
+
+	for _, e := range strings.Split(path, string(filepath.Separator)) {
+		if e != "" && e != "." {
+			result = append(result, e)
+		}
+	}
+
+	return result
 }

@@ -16,6 +16,8 @@ import (
 	"github.com/essentialkaos/ek/v14/fsutil"
 	"github.com/essentialkaos/ek/v14/hashutil"
 
+	"github.com/essentialkaos/npck/v3/utils"
+
 	. "github.com/essentialkaos/check"
 )
 
@@ -69,4 +71,9 @@ func (s *BZ2Suite) TestErrors(c *C) {
 
 	err = Read(strings.NewReader(""), "/_unknown", Options{})
 	c.Assert(err, NotNil)
+}
+
+func (s *BZ2Suite) TestReadLimit(c *C) {
+	err := Unpack("../.testdata/data.txt.bz2", c.MkDir(), Options{MaxReadLimit: 3})
+	c.Assert(err, Equals, utils.ErrLimitExceeded)
 }

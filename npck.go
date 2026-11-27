@@ -13,18 +13,18 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/essentialkaos/npck/v2/bz2"
-	"github.com/essentialkaos/npck/v2/gz"
-	"github.com/essentialkaos/npck/v2/lz4"
-	"github.com/essentialkaos/npck/v2/tar"
-	"github.com/essentialkaos/npck/v2/tbz2"
-	"github.com/essentialkaos/npck/v2/tgz"
-	"github.com/essentialkaos/npck/v2/tlz4"
-	"github.com/essentialkaos/npck/v2/txz"
-	"github.com/essentialkaos/npck/v2/tzst"
-	"github.com/essentialkaos/npck/v2/xz"
-	"github.com/essentialkaos/npck/v2/zip"
-	"github.com/essentialkaos/npck/v2/zst"
+	"github.com/essentialkaos/npck/v3/bz2"
+	"github.com/essentialkaos/npck/v3/gz"
+	"github.com/essentialkaos/npck/v3/lz4"
+	"github.com/essentialkaos/npck/v3/tar"
+	"github.com/essentialkaos/npck/v3/tbz2"
+	"github.com/essentialkaos/npck/v3/tgz"
+	"github.com/essentialkaos/npck/v3/tlz4"
+	"github.com/essentialkaos/npck/v3/txz"
+	"github.com/essentialkaos/npck/v3/tzst"
+	"github.com/essentialkaos/npck/v3/xz"
+	"github.com/essentialkaos/npck/v3/zip"
+	"github.com/essentialkaos/npck/v3/zst"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -62,11 +62,11 @@ func Unpack(file, dir string) error {
 	case ".bz2":
 		return bz2.Unpack(file, dir, bz2.Options{})
 	case ".xz":
-		return xz.Unpack(file, dir)
+		return xz.Unpack(file, dir, xz.Options{})
 	case ".zst":
-		return zst.Unpack(file, dir)
+		return zst.Unpack(file, dir, zst.Options{})
 	case ".lz4":
-		return lz4.Unpack(file, dir)
+		return lz4.Unpack(file, dir, lz4.Options{})
 	}
 
 	return ErrUnsupportedFormat

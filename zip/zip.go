@@ -13,17 +13,20 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/klauspost/compress/zip"
 
-	"github.com/essentialkaos/npck/v2/utils"
+	"github.com/essentialkaos/npck/v3/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // DEFAULT_MAX_READ_LIMIT is default the maximum read limit (1GB)
 const DEFAULT_MAX_READ_LIMIT int64 = 1024 * 1024 * 1024
+
+// DEFAULT_MAX_ARCHIVE_SIZE is default the maximum total size of all extracted
+// files (100GB)
+const DEFAULT_MAX_ARCHIVE_SIZE int64 = 100 * 1024 * 1024 * 1024
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -32,6 +35,10 @@ type Options struct {
 	// MaxReadLimit is the maximum read limit for decompression bomb
 	// protection (default: 1GB)
 	MaxReadLimit int64
+
+	// MaxTotalSize is the maximum total size of all extracted files
+	// (default: 100GB)
+	MaxTotalSize int64
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -71,7 +78,7 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 	case dir == "":
 		return ErrEmptyOutput
 	case size <= 0:
-		return fmt.Errorf("invalid data size (%d ≤ 0)", size)
+		return fmt.Errorf("invalid data size (%d <= 0)", size)
 	}
 
 	zr, err := zip.NewReader(r, size)
@@ -80,28 +87,43 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 		return err
 	}
 
-	limit := options.MaxReadLimit
+	root, err := os.OpenRoot(dir)
 
-	if limit == 0 {
-		limit = DEFAULT_MAX_READ_LIMIT
+	if err != nil {
+		return err
 	}
+
+	defer root.Close()
+
+	if options.MaxTotalSize == 0 {
+		options.MaxTotalSize = DEFAULT_MAX_ARCHIVE_SIZE
+	}
+
+	total := int64(0)
 
 	for _, file := range zr.File {
 		header := file.FileHeader
-
-		if strings.Contains(header.Name, "..") {
-			return fmt.Errorf("path %q contains directory traversal element and cannot be used", header.Name)
-		}
-
+		path, err := utils.LocalPath(header.Name)
 		info := header.FileInfo()
-		path, err := utils.Join(dir, header.Name)
 
 		if err != nil {
 			return err
 		}
 
+		size := int64(header.UncompressedSize64)
+
+		if size < 0 {
+			return fmt.Errorf("entry %q declares invalid size (%d)", header.Name, size)
+		}
+
+		if utils.IsOverLimit(size, options.MaxTotalSize, total) {
+			return fmt.Errorf("archive total size is bigger than %d bytes", options.MaxTotalSize)
+		}
+
+		total += size
+
 		if info.IsDir() {
-			err = os.MkdirAll(path, info.Mode())
+			err = root.MkdirAll(path, utils.DirMode(info.Mode()))
 
 			if err != nil {
 				return err
@@ -110,7 +132,7 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 			continue
 		}
 
-		err = extractFile(file, path, info.Mode(), limit)
+		err = extractFile(root, file, path, info.Mode(), limit(options))
 
 		if err != nil {
 			return err
@@ -122,7 +144,8 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-func extractFile(file *zip.File, path string, mode os.FileMode, limit int64) error {
+// extractFile extracts file from archive to given path inside root
+func extractFile(root *os.Root, file *zip.File, path string, mode os.FileMode, limit int64) error {
 	zfd, err := file.Open()
 
 	if err != nil {
@@ -131,7 +154,7 @@ func extractFile(file *zip.File, path string, mode os.FileMode, limit int64) err
 
 	defer zfd.Close()
 
-	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
+	fd, err := root.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
 
 	if err != nil {
 		return err
@@ -140,11 +163,28 @@ func extractFile(file *zip.File, path string, mode os.FileMode, limit int64) err
 	defer fd.Close()
 
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, io.LimitReader(zfd, limit))
+	err = utils.CopyLimited(bw, zfd, limit)
+
+	if err != nil {
+		return err
+	}
+
+	err = utils.IsLimitExceeded(zfd, limit)
 
 	if err != nil {
 		return err
 	}
 
 	return bw.Flush()
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// limit returns per-file limit from given options
+func limit(options Options) int64 {
+	if options.MaxReadLimit == 0 {
+		return DEFAULT_MAX_READ_LIMIT
+	}
+
+	return options.MaxReadLimit
 }

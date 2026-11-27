@@ -14,8 +14,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/essentialkaos/npck/v2/tar"
-	"github.com/essentialkaos/npck/v2/utils"
+	"github.com/essentialkaos/npck/v3/tar"
+	"github.com/essentialkaos/npck/v3/utils"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

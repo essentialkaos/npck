@@ -16,7 +16,7 @@ import (
 
 func ExampleUnpack() {
 	file := "file.lz4"
-	err := Unpack(file, "/home/bob/data")
+	err := Unpack(file, "/home/bob/data", Options{})
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)
@@ -35,7 +35,7 @@ func ExampleRead() {
 		return
 	}
 
-	err = Read(fd, "/home/bob/data")
+	err = Read(fd, "/home/bob/data", Options{})
 
 	if err != nil {
 		fmt.Printf("Error: Can't unpack %s: %v\n", file, err)

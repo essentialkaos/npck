@@ -17,8 +17,20 @@ import (
 
 	"github.com/pierrec/lz4/v4"
 
-	"github.com/essentialkaos/npck/v2/utils"
+	"github.com/essentialkaos/npck/v3/utils"
 )
+
+// DEFAULT_MAX_READ_LIMIT is default the maximum read limit (1GB)
+const DEFAULT_MAX_READ_LIMIT int64 = 1024 * 1024 * 1024
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// Options is reader options
+type Options struct {
+	// MaxReadLimit is the maximum number of bytes the decompressed data can
+	// contain (default: 1GB)
+	MaxReadLimit int64
+}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -31,7 +43,7 @@ var (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Unpacks file to given directory
-func Unpack(file, dir string) error {
+func Unpack(file, dir string, options Options) error {
 	switch {
 	case file == "":
 		return ErrEmptyInput
@@ -42,12 +54,6 @@ func Unpack(file, dir string) error {
 	output := strings.TrimSuffix(filepath.Base(file), ".lz4")
 	output = strings.TrimSuffix(output, ".LZ4")
 
-	path, err := utils.Join(dir, output)
-
-	if err != nil {
-		return err
-	}
-
 	fd, err := os.Open(file)
 
 	if err != nil {
@@ -56,12 +62,20 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), path)
+	ofd, err := utils.CreateFile(dir, output, 0640)
+
+	if err != nil {
+		return err
+	}
+
+	defer ofd.Close()
+
+	return read(bufio.NewReader(fd), ofd, options)
 }
 
 // Read reads compressed data using given reader and unpacks it to
 // the given directory
-func Read(r io.Reader, output string) error {
+func Read(r io.Reader, output string, options Options) error {
 	switch {
 	case r == nil:
 		return ErrNilReader
@@ -77,13 +91,38 @@ func Read(r io.Reader, output string) error {
 
 	defer fd.Close()
 
+	return read(r, fd, options)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// read decompresses data from given reader and writes it to given file
+func read(r io.Reader, fd *os.File, options Options) error {
 	cr := lz4.NewReader(r)
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, cr)
+
+	err := utils.CopyLimited(bw, cr, limit(options))
+
+	if err != nil {
+		return err
+	}
+
+	err = utils.IsLimitExceeded(cr, limit(options))
 
 	if err != nil {
 		return err
 	}
 
 	return bw.Flush()
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// limit returns limit from given options
+func limit(options Options) int64 {
+	if options.MaxReadLimit == 0 {
+		return DEFAULT_MAX_READ_LIMIT
+	}
+
+	return options.MaxReadLimit
 }
