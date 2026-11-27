@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -26,8 +27,53 @@ var (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// LocalPath converts archive entry name to clean relative path which can be used
+// with os.Root. Leading slashes are removed. Method returns error if name contains
+// directory traversal elements.
+func LocalPath(name string) (string, error) {
+	for _, e := range strings.Split(filepath.ToSlash(name), "/") {
+		if e == ".." {
+			return "", fmt.Errorf(
+				"path %q contains directory traversal element and cannot be used", name,
+			)
+		}
+	}
+
+	name = strings.TrimLeft(path.Clean("/"+filepath.ToSlash(name)), "/")
+
+	if name == "" {
+		return ".", nil
+	}
+
+	return filepath.FromSlash(name), nil
+}
+
+// DirMode returns permission and special bits of given mode which can be used
+// for directory creation using os.Root
+func DirMode(mode os.FileMode) os.FileMode {
+	return mode & (os.ModePerm | os.ModeSetuid | os.ModeSetgid | os.ModeSticky)
+}
+
+// CreateFile creates (or truncates) file with given name inside given directory.
+// Symbolic links are resolved only within the directory, so the file can't be
+// created outside of it.
+func CreateFile(dir, name string, perm os.FileMode) (*os.File, error) {
+	root, err := os.OpenRoot(dir)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer root.Close()
+
+	return root.OpenFile(name, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, perm)
+}
+
 // Join joins all elements of path, makes lexical processing, and evaluating all symlinks.
 // Method returns error if final destination is not a child path of root.
+//
+// Deprecated: Join is vulnerable to escapes through symbolic links in intermediate
+// path elements. Use os.Root instead.
 func Join(root string, elem ...string) (string, error) {
 	result, err := filepath.EvalSymlinks(root)
 

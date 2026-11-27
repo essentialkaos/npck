@@ -73,3 +73,19 @@ func (s *GZSuite) TestErrors(c *C) {
 	err = Read(strings.NewReader(""), s.Dir+"/test", Options{})
 	c.Assert(err, NotNil)
 }
+
+func (s *GZSuite) TestSymlinkEscape(c *C) {
+	base := c.MkDir()
+	dir := base + "/out"
+
+	c.Assert(os.Mkdir(dir, 0750), IsNil)
+	c.Assert(os.WriteFile(base+"/victim.txt", []byte("original"), 0640), IsNil)
+	c.Assert(os.Symlink(base+"/victim.txt", dir+"/data.txt"), IsNil)
+
+	err := Unpack("../.testdata/data.txt.gz", dir, Options{})
+	c.Assert(err, NotNil)
+
+	victim, err := os.ReadFile(base + "/victim.txt")
+	c.Assert(err, IsNil)
+	c.Assert(string(victim), Equals, "original")
+}

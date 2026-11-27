@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/klauspost/compress/zip"
 
@@ -80,6 +79,14 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 		return err
 	}
 
+	root, err := os.OpenRoot(dir)
+
+	if err != nil {
+		return err
+	}
+
+	defer root.Close()
+
 	limit := options.MaxReadLimit
 
 	if limit == 0 {
@@ -88,20 +95,15 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 
 	for _, file := range zr.File {
 		header := file.FileHeader
-
-		if strings.Contains(header.Name, "..") {
-			return fmt.Errorf("path %q contains directory traversal element and cannot be used", header.Name)
-		}
-
 		info := header.FileInfo()
-		path, err := utils.Join(dir, header.Name)
+		path, err := utils.LocalPath(header.Name)
 
 		if err != nil {
 			return err
 		}
 
 		if info.IsDir() {
-			err = os.MkdirAll(path, info.Mode())
+			err = root.MkdirAll(path, utils.DirMode(info.Mode()))
 
 			if err != nil {
 				return err
@@ -110,7 +112,7 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 			continue
 		}
 
-		err = extractFile(file, path, info.Mode(), limit)
+		err = extractFile(root, file, path, info.Mode(), limit)
 
 		if err != nil {
 			return err
@@ -122,7 +124,8 @@ func Read(r io.ReaderAt, size int64, dir string, options Options) error {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-func extractFile(file *zip.File, path string, mode os.FileMode, limit int64) error {
+// extractFile extracts file from archive to given path inside root
+func extractFile(root *os.Root, file *zip.File, path string, mode os.FileMode, limit int64) error {
 	zfd, err := file.Open()
 
 	if err != nil {
@@ -131,7 +134,7 @@ func extractFile(file *zip.File, path string, mode os.FileMode, limit int64) err
 
 	defer zfd.Close()
 
-	fd, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
+	fd, err := root.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
 
 	if err != nil {
 		return err

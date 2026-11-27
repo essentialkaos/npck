@@ -73,3 +73,16 @@ func (s *ZipSuite) TestErrors(c *C) {
 	err = Read(strings.NewReader(""), -1, s.Dir, Options{})
 	c.Assert(err, NotNil)
 }
+
+func (s *ZipSuite) TestSymlinkEscape(c *C) {
+	base := c.MkDir()
+	dir := base + "/out"
+
+	c.Assert(os.Mkdir(dir, 0750), IsNil)
+	c.Assert(os.Mkdir(base+"/victim", 0750), IsNil)
+	c.Assert(os.Symlink(base+"/victim", dir+"/data"), IsNil)
+
+	err := Unpack("../.testdata/data.zip", dir, Options{})
+	c.Assert(err, NotNil)
+	c.Assert(fsutil.IsExist(base+"/victim/payload.txt"), Equals, false)
+}

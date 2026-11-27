@@ -42,12 +42,6 @@ func Unpack(file, dir string) error {
 	output := strings.TrimSuffix(filepath.Base(file), ".lz4")
 	output = strings.TrimSuffix(output, ".LZ4")
 
-	path, err := utils.Join(dir, output)
-
-	if err != nil {
-		return err
-	}
-
 	fd, err := os.Open(file)
 
 	if err != nil {
@@ -56,7 +50,15 @@ func Unpack(file, dir string) error {
 
 	defer fd.Close()
 
-	return Read(bufio.NewReader(fd), path)
+	ofd, err := utils.CreateFile(dir, output, 0640)
+
+	if err != nil {
+		return err
+	}
+
+	defer ofd.Close()
+
+	return read(bufio.NewReader(fd), ofd)
 }
 
 // Read reads compressed data using given reader and unpacks it to
@@ -77,9 +79,16 @@ func Read(r io.Reader, output string) error {
 
 	defer fd.Close()
 
+	return read(r, fd)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// read decompresses data from given reader and writes it to given file
+func read(r io.Reader, fd *os.File) error {
 	cr := lz4.NewReader(r)
 	bw := bufio.NewWriter(fd)
-	_, err = io.Copy(bw, cr)
+	_, err := io.Copy(bw, cr)
 
 	if err != nil {
 		return err
